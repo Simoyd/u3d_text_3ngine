@@ -5,6 +5,8 @@ Custom text engine package for per-char coloring and perf improvements.
 `/Assets/u3d_text_3ngine/` is the folder for creating the asset. Instructions on asset creation TBD.
 
 ### Setup
+We are using unity `Unity 5.5.0f3` for this asset, so install that if you don't heff it already.
+
 You will need to import the `TextMesh Pro` asset yourself to get this working.To import `TextMesh Pro`:
 1. Go to the `Window` menu at the top, then `Asset Store` (or press `Ctrl+9`)
 2. You should in theory be able to find it by searching for `TextMesh Pro`, but I had some problems. If you do follow below, otherwise skip to step 5
