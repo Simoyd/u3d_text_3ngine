@@ -252,7 +252,7 @@ public class u3d_text_3ngine : MonoBehaviour
         int newHeightChars = Math.Max(1, (int)Mathf.Floor(canvas.rect.height / charHeight));
 
         // If it's already correct, then don't process anything
-        if (WidthChars == newWidthChars && HeightChars == newHeightChars)
+        if ((WidthChars == newWidthChars) && (HeightChars == newHeightChars))
         {
             return;
         }
@@ -362,7 +362,7 @@ public class u3d_text_3ngine : MonoBehaviour
         // Loop through all lines to check if they are correct
         for (int i = 0; i < HeightChars; ++i)
         {
-            if (lineText[i] != null && DisplayText[i] != lineText[i])
+            if ((lineText[i] != null) && (DisplayText[i] != lineText[i]))
             {
                 // Line does not match the requested value, so throw it in the cache (maybe it scrolled?)
                 CacheUnusedLine(lineText[i], lines[i]);
@@ -551,7 +551,8 @@ public class u3d_text_3ngine : MonoBehaviour
         // Save the total number of corrupted lines for Debug/Analysis
         CorruptedLines = incorrectLines.Length;
 
-        if (CorruptedLines > 0 && Enumerable.Range(0, HeightChars).Where(cur => lines[cur] != null && lineText[cur] == null).Count() == 0)
+        if ((CorruptedLines > 0) && 
+            (Enumerable.Range(0, HeightChars).Where(cur => lines[cur] != null && lineText[cur] == null).Count() == 0))
         {
             // Either first corruption is appearing, or corruption max time was hit
             lastCorruptionChange = DateTime.Now;
