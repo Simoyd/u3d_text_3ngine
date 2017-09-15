@@ -6,6 +6,7 @@ Custom text engine package for per-char coloring and perf improvements.
 
 ### Setup
 We are using unity `Unity 5.5.0f3` for this asset, so install that if you don't heff it already.
+Start unity and open an existing project. Select the git repo's root directory and it should open the project.
 
 You will need to import the `TextMesh Pro` asset yourself to get this working. To import `TextMesh Pro`:
 1. Go to the `Window` menu at the top, then `Asset Store` (or press `Ctrl+9`)
