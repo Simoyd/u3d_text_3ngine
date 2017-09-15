@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 /// <summary>
 /// Class used to create a large block of high-performance text

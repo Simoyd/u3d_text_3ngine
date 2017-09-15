@@ -2,9 +2,9 @@
 //     MIT License https://github.com/DrizzlyBear/u3d_text_3ngine/blob/master/LICENSE
 // </license>
 
-using System.Diagnostics;
 using System.Linq;
 using UnityEngine;
+using Stopwatch = System.Diagnostics.Stopwatch;
 
 public class scroll_test : MonoBehaviour
 {
