@@ -17,6 +17,9 @@ public class scroll_test : MonoBehaviour
         UpSwing,
     }
 
+    private const double percentFull = 1.0;
+
+    private static System.Random r = new System.Random();
     public static double linesPerSecond = 1;
 
     private u3d_text_3ngine engine;
@@ -127,7 +130,8 @@ public class scroll_test : MonoBehaviour
         while (accumulator > msPerLine)
         {
             // TODO: put color in this test string, once color parsing is done in engine
-            string newLine = new string(Enumerable.Range(0, engine.WidthChars).Select(cur => (char)(Random.value * 26 + 'a')).ToArray());
+            string newLine = string.Join("", Enumerable.Range(0, engine.WidthChars).Select(cur => r.NextDouble() <= percentFull ? string.Format("`{0}{1}`", u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key, (char)(r.Next(26) + 'a')) : " ").ToArray());
+
             engine.DisplayText = engine.DisplayText.Skip(1).Concat(new string[] { newLine }).ToArray();
 
             accumulator -= msPerLine;

@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
 using Random = UnityEngine.Random;
@@ -41,9 +43,14 @@ public class u3d_text_3ngine : MonoBehaviour
     private const int maxCpuTimePercent = 10;
 
     /// <summary>
+    /// The color to use as default for uncolored text
+    /// </summary>
+    private const char defaultColor = 'S';
+
+    /// <summary>
     /// Color lookup used for standard hackmud color letters
     /// </summary>
-    private static readonly Dictionary<char, Color32> HackmudColors = new Dictionary<char, Color32>() {
+    public static readonly Dictionary<char, Color32> HackmudColors = new Dictionary<char, Color32>() {
         { 'A', HexToColor("FFFFFF") }, { 'B', HexToColor("CACACA") }, { 'C', HexToColor("9B9B9B") }, { 'D', HexToColor("FF0000") },
         { 'E', HexToColor("FF8383") }, { 'F', HexToColor("FF8000") }, { 'G', HexToColor("F3AA6F") }, { 'H', HexToColor("FBC803") },
         { 'I', HexToColor("FFD863") }, { 'J', HexToColor("FFF404") }, { 'K', HexToColor("F3F998") }, { 'L', HexToColor("1EFF00") },
@@ -60,6 +67,11 @@ public class u3d_text_3ngine : MonoBehaviour
     };
 
     /// <summary>
+    /// Hackmud corruption characters
+    /// </summary>
+    public static readonly char[] corruption_chars = new char[] { (char)162, (char)164, (char)166, (char)167, (char)168, (char)169, (char)170, (char)193, (char)195 };
+
+    /// <summary>
     /// Used for accumulating how many chars were rendered this frame
     /// </summary>
     public static Dictionary<u3d_text_3ngine, int> TotalChars = new Dictionary<u3d_text_3ngine, int>();
@@ -72,10 +84,16 @@ public class u3d_text_3ngine : MonoBehaviour
     private static Color32 HexToColor(string hex)
     {
         return new Color32(Convert.ToByte(hex.Substring(0, 2), 16),
-                           Convert.ToByte(hex.Substring(0, 2), 16),
-                           Convert.ToByte(hex.Substring(0, 2), 16),
+                           Convert.ToByte(hex.Substring(2, 2), 16),
+                           Convert.ToByte(hex.Substring(4, 2), 16),
                            255);
     }
+
+    // TODO: replace all of unity's garbage with this one.
+    /// <summary>
+    /// Unity's random number generator is bad
+    /// </summary>
+    private static System.Random r = new System.Random();
 
     #endregion
 
@@ -264,10 +282,10 @@ public class u3d_text_3ngine : MonoBehaviour
         // Save the total size for debug/analysis purposes
         TotalChars[this] = WidthChars * HeightChars;
 
-        // Any larger than this width appears to throw exception, so don't let it happen.
+        // Any larger than this width appears to throw exceptions, so don't let it happen.
         if (WidthChars > maxWidth)
         {
-            throw new Exception("Big Problem!!!");
+            WidthChars = maxWidth;
         }
 
         // TODO: need to ADJUST the GameObject collections below, not just create new ones. GameObjects dont magically get garbage collected.
@@ -314,9 +332,9 @@ public class u3d_text_3ngine : MonoBehaviour
                 newLineRect.sizeDelta = new Vector2(canvas.rect.width, 0);
                 newLineRect.localPosition = new Vector3(0, curOffset);
 
-                TextMeshProUGUI lineGui = newLine.GetComponent<TextMeshProUGUI>();
-                string corrText = new string(Enumerable.Range(0, WidthChars).Select(cur => Random.value > 0.4 ? (char)(Random.value * 9 + 162) : ' ').ToArray());
-                lineGui.SetText(corrText);
+                // Generate corruption text and create the mesh and vertex colors for it.
+                string corrText = string.Join("", Enumerable.Range(0, WidthChars).Select(cur => Random.value > 0.4 ? string.Format("`{0}{1}`", HackmudColors.ElementAt(r.Next(HackmudColors.Count)).Key, corruption_chars[(int)(Random.value * corruption_chars.Length)]) : " ").ToArray());
+                UpdateLine(newLine, corrText);
 
                 unusedCorruptedLines.Add(newLine);
             }
@@ -467,23 +485,9 @@ public class u3d_text_3ngine : MonoBehaviour
             // Get the first in the cache, which should be the oldest used line, most stale, so we can repurpose
             GameObject lineToUse = unusedLinesAge[newLinesCreated++];
 
-            // Get the TMP object
-            TextMeshProUGUI lineGui = lineToUse.GetComponent<TextMeshProUGUI>();
-
             // Move the line into position
             RectTransform lineToUseRect = lineToUse.GetComponent<RectTransform>();
             lineToUseRect.localPosition = new Vector3(0, lineOffsets[curIndex]);
-
-            // TODO: parse into text and colors
-            //StringBuilder sb = new StringBuilder();
-
-            //for (int i = 0; i < WidthChars; ++i)
-            //{
-            //    sb.AppendFormat("{0}", (char)(r.Next(26) + 'a'));
-            //}
-
-            //string newVal = sb.ToString();
-            string newVal = DisplayText[curIndex];
 
             if (lines[curIndex] != null)
             {
@@ -499,30 +503,8 @@ public class u3d_text_3ngine : MonoBehaviour
             // Enable the line in unity
             EnableGuiObject(lineToUse);
 
-            // Update the line text and regenerate the mesh
-            lineGui.SetText(newVal);
-            lineGui.ForceMeshUpdate();
-
-            // TODO: update colors based on above parsing
-            //CanvasRenderer renderer = lineToUse.GetComponent<CanvasRenderer>();
-            //Mesh mesh = lineGui.textInfo.meshInfo[0].mesh;
-
-            //// IMPORTANT!!! mesh.vertices is O(n), NOT O(1)!!!!!
-            //int length = mesh.vertices.Length;
-            //Color32[] colors = new Color32[length];
-
-            //for (int i = 0; i < length / 4; ++i)
-            //{
-            //    int j = i * 4;
-            //    Color32 curColor = new Color32((byte)r.Next(255), (byte)r.Next(255), (byte)r.Next(255), 255);
-            //    colors[j + 0] = curColor;
-            //    colors[j + 1] = curColor;
-            //    colors[j + 2] = curColor;
-            //    colors[j + 3] = curColor;
-            //}
-
-            //mesh.colors32 = colors;
-            //renderer.SetMesh(mesh);
+            // Update the Unity mesh and vertex colors
+            UpdateLine(lineToUse, DisplayText[curIndex]);
 
             // If we occupy more than whatever percent of a 60th of a second, then break out
             if (stopwatch.ElapsedMilliseconds > (1000.0 / 60.0 * (maxCpuTimePercent / 100.0)))
@@ -538,6 +520,97 @@ public class u3d_text_3ngine : MonoBehaviour
         HashSet <GameObject> nowUsedLines = new HashSet<GameObject>(unusedLinesAge.Take(newLinesCreated));
         unusedLinesAge = unusedLinesAge.Skip(newLinesCreated).ToList();
         unusedLinesLookup = unusedLinesLookup.Select(cur => new KeyValuePair<string, List<GameObject>>(cur.Key, cur.Value.Where(curList => !nowUsedLines.Contains(curList)).ToList())).Where(cur => cur.Value.Count > 0).ToDictionary(cur => cur.Key, cur => cur.Value);
+    }
+
+    /// <summary>
+    /// Updates the Unity mesh and vertex colors for the specified line
+    /// </summary>
+    /// <param name="lineToUse">The TMP game object to update</param>
+    /// <param name="curText">The full content string with color codes</param>
+    private void UpdateLine(GameObject lineToUse, string curText)
+    {
+        // Get the TMP object
+        TextMeshProUGUI lineGui = lineToUse.GetComponent<TextMeshProUGUI>();
+
+        StringBuilder sb = new StringBuilder();
+        Color32[] colors = new Color32[maxWidth];
+
+        // TODO: support numbers and specials
+        Regex colorRegex = new Regex("`([A-Za-z])(?!(:.?|.?:)`)([^`\n]+)`");
+        MatchCollection matches = colorRegex.Matches(curText);
+        int curCharSource = 0;
+        int curCharDest = 0;
+
+        foreach (Match curMatch in matches)
+        {
+            if (curMatch.Index != curCharSource)
+            {
+                sb.Append(curText.Substring(curCharSource, curMatch.Index - curCharSource));
+                SetColors(colors, defaultColor, curCharDest, curMatch.Index - curCharSource);
+                curCharDest += curMatch.Index - curCharSource;
+            }
+
+            string deColVal = curMatch.Groups[3].Captures[0].Value;
+
+            sb.Append(deColVal);
+            SetColors(colors, curMatch.Groups[1].Captures[0].Value[0], curCharDest, deColVal.Length);
+
+            curCharSource = curMatch.Index + curMatch.Length;
+            curCharDest += deColVal.Length;
+        }
+
+        if (curCharSource != (curText.Length))
+        {
+            sb.Append(curText.Substring(curCharSource, curText.Length - curCharSource));
+            SetColors(colors, defaultColor, curCharDest, curText.Length - curCharSource);
+        }
+
+        string newVal = sb.ToString();
+
+        // Ensure we're not over the max length
+        if (newVal.Length > WidthChars)
+        {
+            newVal = newVal.Substring(0, WidthChars);
+        }
+
+        // Update the line text and regenerate the mesh
+        lineGui.SetText(newVal);
+        lineGui.ForceMeshUpdate();
+
+        CanvasRenderer renderer = lineToUse.GetComponent<CanvasRenderer>();
+        Mesh mesh = lineGui.textInfo.meshInfo[0].mesh;
+
+        //// IMPORTANT!!! mesh.vertices is O(n), NOT O(1)!!!!!
+        int length = mesh.vertices.Length;
+        Color32[] finalColors = new Color32[length];
+
+        foreach (TMP_CharacterInfo curCharInfo in lineGui.textInfo.characterInfo.Where(cur => cur.isVisible))
+        {
+            Color32 charMeshColor = colors[curCharInfo.index];
+            int startIndex = curCharInfo.vertexIndex;
+
+            finalColors[startIndex + 0] = charMeshColor;
+            finalColors[startIndex + 1] = charMeshColor;
+            finalColors[startIndex + 2] = charMeshColor;
+            finalColors[startIndex + 3] = charMeshColor;
+        }
+
+        Color32 meshColor = HackmudColors[defaultColor];
+
+        mesh.colors32 = finalColors;
+        renderer.SetMesh(mesh);
+
+        Color32[] colorsasd = lineToUse.GetComponent<TextMeshProUGUI>().textInfo.meshInfo[0].mesh.colors32;
+    }
+
+    private void SetColors(Color32[] colors, char color, int startIndex, int length)
+    {
+        Color32 meshColor = HackmudColors[color];
+
+        for (int i = 0; i < length; ++i)
+        {
+            colors[i + startIndex] = meshColor;
+        }
     }
 
     /// <summary>
@@ -613,7 +686,7 @@ public class u3d_text_3ngine : MonoBehaviour
     /// <param name="curObj">The line to disable</param>
     private void DisableGuiObject(GameObject curObj)
     {
-        curObj.GetComponents<MonoBehaviour>().ToList().ForEach(cur => { if (cur.enabled) cur.enabled = false; });
+        curObj.GetComponent<CanvasRenderer>().cull = true;
     }
 
     /// <summary>
@@ -622,7 +695,7 @@ public class u3d_text_3ngine : MonoBehaviour
     /// <param name="curObj">The line to enable</param>
     private void EnableGuiObject(GameObject curObj)
     {
-        curObj.GetComponents<MonoBehaviour>().ToList().ForEach(cur => { if (!cur.enabled) cur.enabled = true; });
+        curObj.GetComponent<CanvasRenderer>().cull = false;
     }
 
     /// <summary>
