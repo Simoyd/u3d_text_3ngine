@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using TMPro;
+using UnityEditor;
 using UnityEngine;
 using Random = System.Random;
 using Stopwatch = System.Diagnostics.Stopwatch;
@@ -17,6 +18,7 @@ using Stopwatch = System.Diagnostics.Stopwatch;
 /// </summary>
 [AddComponentMenu("UI/u3d_text_3ngine")]
 [RequireComponent(typeof(RectTransform))]
+[DisallowMultipleComponent]
 public class u3d_text_3ngine : MonoBehaviour
 {
     #region Static / Constant
@@ -104,6 +106,25 @@ public class u3d_text_3ngine : MonoBehaviour
     /// </summary>
     private static Random r = new Random();
 
+    /// <summary>
+    /// Allows right click adding of a u3d_text_3ngine object in the unity editor
+    /// </summary>
+    /// <param name="menuCommand">The event args from unity</param>
+    [MenuItem("GameObject/UI/u3d_text_3ngine")]
+    static void CreateCustomGameObject(MenuCommand menuCommand)
+    {
+        // Create a custom game object
+        GameObject engine = new GameObject("u3d_text_3ngine");
+        engine.AddComponent<u3d_text_3ngine>();
+
+        // Ensure it gets reparented if this was a context click (otherwise does nothing)
+        GameObjectUtility.SetParentAndAlign(engine, menuCommand.context as GameObject);
+
+        // Register the creation in the undo system
+        Undo.RegisterCreatedObjectUndo(engine, "Create " + engine.name);
+        Selection.activeObject = engine;
+    }
+
     #endregion
 
     #region Constructor / Destructor
@@ -119,8 +140,15 @@ public class u3d_text_3ngine : MonoBehaviour
         // Ensure to calibrate on first iteration
         RecalibrateSize = true;
 
+        // Create the template TMP object
+        template = new GameObject("tmp_template");
+        template.transform.parent = transform;
+        TextMeshProUGUI templateGui = template.AddComponent<TextMeshProUGUI>();
+        templateGui.font = FontAsset;
+        templateGui.fontSharedMaterial = FontAsset.material;
+        templateGui.fontSize = FontSize;
+
         // Disable the template so we don't see it
-        template = transform.GetChild(0).gameObject;
         DisableGuiObject(template);
 
         // Ensure this is set to something. The processing logic will clean it up better as long as it's not null.
@@ -190,6 +218,20 @@ public class u3d_text_3ngine : MonoBehaviour
     #endregion
 
     #region Public Members
+
+    #region Unity Editor Visible
+
+    /// <summary>
+    /// The font asset to user in this object
+    /// </summary>
+    public TMP_FontAsset FontAsset;
+
+    /// <summary>
+    /// The font size to use for this object
+    /// </summary>
+    public float FontSize;
+
+    #endregion
 
     /// <summary>
     /// Gets or sets the text that we are currently trying to display
@@ -325,6 +367,7 @@ public class u3d_text_3ngine : MonoBehaviour
                 for (int j = 0; j < maxCachedLines; ++j)
                 {
                     newLine = Instantiate(template, transform);
+                    newLine.name = "tmp_pool_line";
                     newLineRect = newLine.GetComponent<RectTransform>();
                     newLineRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
                     newLineRect.localPosition = new Vector3(0, curOffset);
@@ -339,6 +382,7 @@ public class u3d_text_3ngine : MonoBehaviour
             {
                 // Create objects for the corrupted lines
                 newLine = Instantiate(template, transform);
+                newLine.name = "tmp_corruption_line";
                 newLineRect = newLine.GetComponent<RectTransform>();
                 newLineRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
                 newLineRect.localPosition = new Vector3(0, curOffset);
@@ -357,6 +401,7 @@ public class u3d_text_3ngine : MonoBehaviour
 
             // Create objects for the main on-screen lines
             newLine = Instantiate(template, transform);
+            newLine.name = "tmp_pool_line";
             newLineRect = newLine.GetComponent<RectTransform>();
             newLineRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
             newLineRect.localPosition = new Vector3(0, curOffset);

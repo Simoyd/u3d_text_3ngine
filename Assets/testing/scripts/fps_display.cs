@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 /// <summary>
@@ -28,6 +29,25 @@ public class fps_display : MonoBehaviour
     /// Queue to hold multiple frame times for averaging
     /// </summary>
     Queue<float> frameTimes = new Queue<float>();
+
+    /// <summary>
+    /// Allows right click adding of a u3d_text_3ngine object in the unity editor
+    /// </summary>
+    /// <param name="menuCommand">The event args from unity</param>
+    [MenuItem("GameObject/UI/fps_display")]
+    static void CreateCustomGameObject(MenuCommand menuCommand)
+    {
+        // Create a custom game object
+        GameObject engine = new GameObject("fps_display");
+        engine.AddComponent<fps_display>();
+
+        // Ensure it gets reparented if this was a context click (otherwise does nothing)
+        GameObjectUtility.SetParentAndAlign(engine, menuCommand.context as GameObject);
+
+        // Register the creation in the undo system
+        Undo.RegisterCreatedObjectUndo(engine, "Create " + engine.name);
+        Selection.activeObject = engine;
+    }
 
     /// <summary>
     /// Use this for initialization, called once per instantiation
