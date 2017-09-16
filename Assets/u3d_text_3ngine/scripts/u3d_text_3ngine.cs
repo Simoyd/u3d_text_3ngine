@@ -216,6 +216,7 @@ public class u3d_text_3ngine : MonoBehaviour
     /// </summary>
     public TMP_FontAsset FontAsset;
 
+    // TODO: allow this to be changed runtime, update template, then do normal recalibrate
     /// <summary>
     /// The font size to use for this object
     /// </summary>
@@ -250,10 +251,14 @@ public class u3d_text_3ngine : MonoBehaviour
 
     #endregion
 
+    #region Public Methods
+
+    #region Unity Methods
+
     /// <summary>
     /// Update is called once per frame
     /// </summary>
-    void Update()
+    public void Update()
     {
         // Check if the size has changed, and recalibrate the game objects if it has
         CheckRecalibrate();
@@ -277,6 +282,12 @@ public class u3d_text_3ngine : MonoBehaviour
         // Disable unused objects
         DisableUnusedObjects();
     }
+
+    #endregion
+
+    #endregion
+
+    #region Private Methods
 
     /// <summary>
     /// Check if the size has changed, and recalibrate the game objects if it has
@@ -821,4 +832,6 @@ public class u3d_text_3ngine : MonoBehaviour
             curArray[idx] = curVar;
         }
     }
+
+    #endregion
 }

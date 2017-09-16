@@ -7,32 +7,44 @@
 using UnityEditor;
 using UnityEngine;
 
+/// <summary>
+/// Unity editor extensions for u3d_text_3ngine object
+/// </summary>
 public class u3d_text_3ngine_editor_extensions : MonoBehaviour
 {
+    /// <summary>
+    /// Validates right click selection before we create the new object
+    /// </summary>
+    /// <param name="menuCommand">The parent object</param>
+    /// <returns>True to create, otherwise false</returns>
     [MenuItem("GameObject/UI/u3d_text_3ngine", validate = true)]
     static bool ValidateCreateCustomGameObject(MenuCommand menuCommand)
     {
+        // Ensure the user right clicked an existing object, not created at the root level
         GameObject parentObject = menuCommand.context as GameObject;
 
         if (!(parentObject is GameObject))
         {
-            EditorUtility.DisplayDialog("Invalid Parent", "u3d_text_3ngine must have a Canvas anscestor", "OK");
+            EditorUtility.DisplayDialog("Invalid Parent", "u3d_text_3ngine must have a Canvas ancestor", "OK");
             return false;
         }
 
+        // Ensure there is a Canvas ancestor, otherwise TMP will not render and instead just throw errors
         Transform transform = parentObject.transform;
 
         while (transform != null)
         {
             if (transform.gameObject.GetComponent<Canvas>() != null)
             {
+                // Found an ancestor
                 return true;
             }
 
             transform = transform.parent;
         }
 
-        EditorUtility.DisplayDialog("Invalid Parent", "u3d_text_3ngine must have a Canvas anscestor", "OK");
+        // Didn't find an ancestor
+        EditorUtility.DisplayDialog("Invalid Parent", "u3d_text_3ngine must have a Canvas ancestor", "OK");
         return false;
     }
 
