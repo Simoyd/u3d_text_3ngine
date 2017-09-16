@@ -130,7 +130,6 @@ public class scroll_test : MonoBehaviour
 
         while (accumulator > msPerLine)
         {
-            // TODO: put color in this test string, once color parsing is done in engine
             string newLine = string.Join("", Enumerable.Range(0, engine.WidthChars)
                 .Select(cur => r.NextDouble() <= percentFull ?
                         string.Format("`{0}{1}`", 

@@ -195,6 +195,16 @@ public class u3d_text_3ngine : MonoBehaviour
     /// </summary>
     private Stopwatch stopwatch = new Stopwatch();
 
+    /// <summary>
+    /// Current width of our draw area
+    /// </summary>
+    private float curWidth = 0;
+
+    /// <summary>
+    /// Current height of our draw area
+    /// </summary>
+    private float curHeight = 0;
+
     #endregion
 
     #region Public Members
@@ -273,6 +283,15 @@ public class u3d_text_3ngine : MonoBehaviour
     /// </summary>
     private void CheckRecalibrate()
     {
+        // Get the rect we're drawing in, and fit the template to it for measuring
+        RectTransform objectRect = gameObject.GetComponent<RectTransform>();
+
+        // If the size has changed, then recalibrate
+        if ((objectRect.rect.width != curWidth) || (objectRect.rect.height != curHeight))
+        {
+            RecalibrateSize = true;
+        }
+
         // Return if recalibration is not requested
         if (!RecalibrateSize)
         {
@@ -282,9 +301,7 @@ public class u3d_text_3ngine : MonoBehaviour
         // Ensure the template is enabled
         EnableGuiObject(template);
 
-        // Get the rect we're drawing in, and fit the template to it for measuring
-        RectTransform objectRect = gameObject.GetComponent<RectTransform>();
-
+        // Fit the template to our rect for measuring
         RectTransform templateRect = template.GetComponent<RectTransform>();
         templateRect.localPosition = new Vector3(0, 0);
         templateRect.sizeDelta = new Vector2(objectRect.rect.width, objectRect.rect.height);
@@ -301,10 +318,31 @@ public class u3d_text_3ngine : MonoBehaviour
         int newWidthChars = Math.Max(1, (int)Mathf.Floor(objectRect.rect.width / charWidth));
         int newHeightChars = Math.Max(1, (int)Mathf.Floor(objectRect.rect.height / charHeight));
 
+        // Save the width and height of our screen area so we don't recalibrate again
+        curWidth = objectRect.rect.width;
+        curHeight = objectRect.rect.height;
+
         // If it's already correct, then don't process anything
         if ((WidthChars == newWidthChars) && (HeightChars == newHeightChars))
         {
+            // Disable the template because we no longer need it
+            DisableGuiObject(template);
+
+            // Recalibration complete, don't do it again next frame
+            RecalibrateSize = false;
+
             return;
+        }
+
+        // HeightChars will only be 0 on first calibration
+        if (HeightChars > 0)
+        {
+            // Move all lines out of our on-screen collections
+            unusedLinesAge.AddRange(Enumerable.Range(0, HeightChars)
+                .Where(cur => lineText[cur] != null).Select(cur => lines[cur]));
+
+            unusedCorruptedLines.AddRange(Enumerable.Range(0, HeightChars)
+                .Where(cur => lineText[cur] == null).Select(cur => lines[cur]));
         }
 
         // Save the new values
@@ -320,80 +358,82 @@ public class u3d_text_3ngine : MonoBehaviour
             WidthChars = maxWidth;
         }
 
-        // TODO: need to ADJUST the GameObject collections below, not just create new ones.
-        //       GameObjects dont magically get garbage collected.
+        // Save the y offset so we can move corruption lines and cached lines around easier
+        lineOffsets = Enumerable.Range(0, HeightChars)
+            .Select(cur => objectRect.rect.height - (charHeight * cur + objectRect.rect.height / 2)).ToArray();
 
-        // Loop through the lines and create the objects we need.
-        lineOffsets = new float[HeightChars];
+        // Clear the lines and line texts, and set to new size.
         lines = new GameObject[HeightChars];
         lineText = new string[HeightChars];
 
-        GameObject newLine;
-        RectTransform newLineRect;
-
-        for (int i = 0; i < HeightChars; ++i)
+        // Remove any lines we no longer need
+        if (unusedLinesAge.Count > (HeightChars + maxCachedLines))
         {
-            // Calculate the y offset for the current line
-            float curOffset = objectRect.rect.height - (charHeight * i + objectRect.rect.height / 2 );
-
-            // Save the y offset so we can move corruption lines and cached lines around easier
-            lineOffsets[i] = curOffset;
-
-            if (i == 0)
+            unusedLinesAge.Skip(HeightChars + maxCachedLines).ToList().ForEach(cur =>
             {
-                // Create objects for the cached lines
-                List<GameObject> blankCachedLines = new List<GameObject>();
+                DisableGuiObject(cur);
+                Destroy(cur);
+            });
 
-                for (int j = 0; j < maxCachedLines; ++j)
-                {
-                    newLine = Instantiate(template, transform);
-                    newLine.name = "tmp_pool_line";
-                    newLineRect = newLine.GetComponent<RectTransform>();
-                    newLineRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
-                    newLineRect.localPosition = new Vector3(0, curOffset);
-
-                    blankCachedLines.Add(newLine);
-                    unusedLinesAge.Add(newLine);
-                }
-
-                unusedLinesLookup[""] = blankCachedLines;
-            }
-            else
-            {
-                // Create objects for the corrupted lines
-                newLine = Instantiate(template, transform);
-                newLine.name = "tmp_corruption_line";
-                newLineRect = newLine.GetComponent<RectTransform>();
-                newLineRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
-                newLineRect.localPosition = new Vector3(0, curOffset);
-
-                // Generate corruption text and create the mesh and vertex colors for it.
-                string corrText = string.Join("", Enumerable.Range(0, WidthChars)
-                    .Select(cur => r.NextDouble() > 0.4 ?
-                            string.Format("`{0}{1}`", HackmudColors.ElementAt(r.Next(HackmudColors.Count)).Key,
-                                          corruption_chars[r.Next(corruption_chars.Length)]) :
-                            " ").ToArray());
-
-                UpdateLine(newLine, corrText);
-
-                unusedCorruptedLines.Add(newLine);
-            }
-
-            // Create objects for the main on-screen lines
-            newLine = Instantiate(template, transform);
-            newLine.name = "tmp_pool_line";
-            newLineRect = newLine.GetComponent<RectTransform>();
-            newLineRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
-            newLineRect.localPosition = new Vector3(0, curOffset);
-
-            // TODO: this can be optimised
-            unusedLinesLookup[""].Add(newLine);
-            unusedLinesAge.Add(newLine);
-
-            // No lines populated to start
-            lines[i] = null;
-            lineText[i] = null;
+            unusedLinesAge = unusedLinesAge.Take(HeightChars + maxCachedLines).ToList();
         }
+
+        if (unusedCorruptedLines.Count > HeightChars)
+        {
+            unusedCorruptedLines.Skip(HeightChars).ToList().ForEach(cur =>
+            {
+                DisableGuiObject(cur);
+                Destroy(cur);
+            });
+
+            unusedCorruptedLines = unusedCorruptedLines.Take(HeightChars).ToList();
+        }
+
+        // Initialize new lines if we need them
+        while (unusedLinesAge.Count < (HeightChars + maxCachedLines))
+        {
+            // Create objects for the main on-screen lines
+            GameObject newLine = Instantiate(template, transform);
+            newLine.name = "tmp_pool_line";
+            unusedLinesAge.Add(newLine);
+        }
+
+        while (unusedCorruptedLines.Count < HeightChars)
+        {
+            // Create objects for the corrupted lines
+            GameObject newLine = Instantiate(template, transform);
+            newLine.name = "tmp_corruption_line";
+            unusedCorruptedLines.Add(newLine);
+        }
+
+        // Recreate meshes and update position for all lines (because scaling can ruin them)
+        unusedLinesAge.ForEach(cur =>
+        {
+            RectTransform curRect = cur.GetComponent<RectTransform>();
+            curRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
+            curRect.localPosition = new Vector3(0, 0);
+
+            UpdateLine(cur, "");
+        });
+
+        unusedCorruptedLines.ForEach(cur =>
+        {
+            RectTransform curRect = cur.GetComponent<RectTransform>();
+            curRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
+            curRect.localPosition = new Vector3(0, 0);
+
+            // Generate corruption text and create the mesh and vertex colors for it.
+            string corrText = string.Join("", Enumerable.Range(0, WidthChars)
+                .Select(curCharNum => r.NextDouble() > 0.4 ?
+                        string.Format("`{0}{1}`", HackmudColors.ElementAt(r.Next(HackmudColors.Count)).Key,
+                                      corruption_chars[r.Next(corruption_chars.Length)]) :
+                        " ").ToArray());
+
+            UpdateLine(cur, corrText);
+        });
+
+        // Save the lines in our lookup
+        unusedLinesLookup = new Dictionary<string, List<GameObject>> { { "", new List<GameObject>(unusedLinesAge) } };
 
         // Disable the template because we no longer need it
         DisableGuiObject(template);
