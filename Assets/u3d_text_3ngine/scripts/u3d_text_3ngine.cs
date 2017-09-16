@@ -159,7 +159,7 @@ public class u3d_text_3ngine : MonoBehaviour
     private Dictionary<string, List<GameObject>> unusedLinesLookup = new Dictionary<string, List<GameObject>>();
 
     /// <summary>
-    /// The corruption lines that are not currently ont he screen
+    /// The corruption lines that are not currently on the screen
     /// </summary>
     private List<GameObject> unusedCorruptedLines = new List<GameObject>();
 
