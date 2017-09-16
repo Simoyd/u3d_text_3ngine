@@ -60,7 +60,11 @@ public class fps_display : MonoBehaviour
         }
 
         float fps = 1.0f / frameTimes.Average();
-        string text = string.Format("{0:0.} fps\nChars: {1}\nHeight: {2}\nLines: {3} / {4}", fps, u3d_text_3ngine.TotalChars.Sum(cur => cur.Value), scroll_test.height, scroll_test.linesPerSecond, scroll_test.height * 60);
+        string text = string.Format("{0:0.} fps\nChars: {1}\nHeight: {2}\nLines: {3} / {4}", 
+                                    fps,
+                                    u3d_text_3ngine.TotalChars.Sum(cur => cur.Value),
+                                    scroll_test.height, scroll_test.linesPerSecond,
+                                    scroll_test.height * 60);
 
         // Send it to Unity to display
         GUI.Label(rect, text, style);

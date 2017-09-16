@@ -130,7 +130,12 @@ public class scroll_test : MonoBehaviour
         while (accumulator > msPerLine)
         {
             // TODO: put color in this test string, once color parsing is done in engine
-            string newLine = string.Join("", Enumerable.Range(0, engine.WidthChars).Select(cur => r.NextDouble() <= percentFull ? string.Format("`{0}{1}`", u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key, (char)(r.Next(26) + 'a')) : " ").ToArray());
+            string newLine = string.Join("", Enumerable.Range(0, engine.WidthChars)
+                .Select(cur => r.NextDouble() <= percentFull ?
+                        string.Format("`{0}{1}`", 
+                                      u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key,
+                                      (char)(r.Next(26) + 'a')) :
+                        " ").ToArray());
 
             engine.DisplayText = engine.DisplayText.Skip(1).Concat(new string[] { newLine }).ToArray();
 

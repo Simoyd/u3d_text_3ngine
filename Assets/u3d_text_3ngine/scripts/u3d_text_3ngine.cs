@@ -51,25 +51,34 @@ public class u3d_text_3ngine : MonoBehaviour
     /// Color lookup used for standard hackmud color letters
     /// </summary>
     public static readonly Dictionary<char, Color32> HackmudColors = new Dictionary<char, Color32>() {
-        { 'A', HexToColor("FFFFFF") }, { 'B', HexToColor("CACACA") }, { 'C', HexToColor("9B9B9B") }, { 'D', HexToColor("FF0000") },
-        { 'E', HexToColor("FF8383") }, { 'F', HexToColor("FF8000") }, { 'G', HexToColor("F3AA6F") }, { 'H', HexToColor("FBC803") },
-        { 'I', HexToColor("FFD863") }, { 'J', HexToColor("FFF404") }, { 'K', HexToColor("F3F998") }, { 'L', HexToColor("1EFF00") },
-        { 'M', HexToColor("B3FF9B") }, { 'N', HexToColor("00FFFF") }, { 'O', HexToColor("8FE6FF") }, { 'P', HexToColor("0070DD") },
-        { 'Q', HexToColor("A4E3FF") }, { 'R', HexToColor("0000FF") }, { 'S', HexToColor("7AB2F4") }, { 'T', HexToColor("B035EE") },
-        { 'U', HexToColor("E6C4FF") }, { 'V', HexToColor("FF00EC") }, { 'W', HexToColor("FF96E0") }, { 'X', HexToColor("FF0070") },
-        { 'Y', HexToColor("FF6A98") }, { 'Z', HexToColor("0C112B") }, { 'a', HexToColor("000000") }, { 'b', HexToColor("3F3F3F") },
-        { 'c', HexToColor("676767") }, { 'd', HexToColor("7D0000") }, { 'e', HexToColor("8E3434") }, { 'f', HexToColor("A34F00") },
-        { 'g', HexToColor("725437") }, { 'h', HexToColor("A88600") }, { 'i', HexToColor("B2934A") }, { 'j', HexToColor("939500") },
-        { 'k', HexToColor("495225") }, { 'l', HexToColor("299400") }, { 'm', HexToColor("23381B") }, { 'n', HexToColor("00535B") },
-        { 'o', HexToColor("324A4C") }, { 'p', HexToColor("0073A6") }, { 'q', HexToColor("385A6C") }, { 'r', HexToColor("010067") },
-        { 's', HexToColor("507AA1") }, { 't', HexToColor("601C81") }, { 'u', HexToColor("43314C") }, { 'v', HexToColor("8C0069") },
-        { 'w', HexToColor("973984") }, { 'x', HexToColor("880024") }, { 'y', HexToColor("762E4A") }, { 'z', HexToColor("101215") },
+        { 'A', HexToColor("FFFFFF") }, { 'B', HexToColor("CACACA") }, { 'C', HexToColor("9B9B9B") },
+        { 'D', HexToColor("FF0000") }, { 'E', HexToColor("FF8383") }, { 'F', HexToColor("FF8000") },
+        { 'G', HexToColor("F3AA6F") }, { 'H', HexToColor("FBC803") }, { 'I', HexToColor("FFD863") },
+        { 'J', HexToColor("FFF404") }, { 'K', HexToColor("F3F998") }, { 'L', HexToColor("1EFF00") },
+        { 'M', HexToColor("B3FF9B") }, { 'N', HexToColor("00FFFF") }, { 'O', HexToColor("8FE6FF") },
+        { 'P', HexToColor("0070DD") }, { 'Q', HexToColor("A4E3FF") }, { 'R', HexToColor("0000FF") },
+        { 'S', HexToColor("7AB2F4") }, { 'T', HexToColor("B035EE") }, { 'U', HexToColor("E6C4FF") },
+        { 'V', HexToColor("FF00EC") }, { 'W', HexToColor("FF96E0") }, { 'X', HexToColor("FF0070") },
+        { 'Y', HexToColor("FF6A98") }, { 'Z', HexToColor("0C112B") }, { 'a', HexToColor("000000") },
+        { 'b', HexToColor("3F3F3F") }, { 'c', HexToColor("676767") }, { 'd', HexToColor("7D0000") },
+        { 'e', HexToColor("8E3434") }, { 'f', HexToColor("A34F00") }, { 'g', HexToColor("725437") },
+        { 'h', HexToColor("A88600") }, { 'i', HexToColor("B2934A") }, { 'j', HexToColor("939500") },
+        { 'k', HexToColor("495225") }, { 'l', HexToColor("299400") }, { 'm', HexToColor("23381B") },
+        { 'n', HexToColor("00535B") }, { 'o', HexToColor("324A4C") }, { 'p', HexToColor("0073A6") },
+        { 'q', HexToColor("385A6C") }, { 'r', HexToColor("010067") }, { 's', HexToColor("507AA1") },
+        { 't', HexToColor("601C81") }, { 'u', HexToColor("43314C") }, { 'v', HexToColor("8C0069") },
+        { 'w', HexToColor("973984") }, { 'x', HexToColor("880024") }, { 'y', HexToColor("762E4A") },
+        { 'z', HexToColor("101215") }, { '0', HexToColor("9B9B9B") }, { '1', HexToColor("FFFFFF") },
+        { '2', HexToColor("1EFF00") }, { '3', HexToColor("0070DD") }, { '4', HexToColor("B035EE") },
+        { '5', HexToColor("FF8000") }, { '6', HexToColor("FF8000") }, { '7', HexToColor("FF8000") },
+        { '8', HexToColor("FF8000") }, { '9', HexToColor("FF8000") },
     };
 
     /// <summary>
     /// Hackmud corruption characters
     /// </summary>
-    public static readonly char[] corruption_chars = new char[] { (char)162, (char)164, (char)166, (char)167, (char)168, (char)169, (char)170, (char)193, (char)195 };
+    public static readonly char[] corruption_chars = new char[] { (char)162, (char)164, (char)166, (char)167, (char)168,
+                                                                  (char)169, (char)170, (char)193, (char)195 };
 
     /// <summary>
     /// Used for accumulating how many chars were rendered this frame
@@ -226,7 +235,8 @@ public class u3d_text_3ngine : MonoBehaviour
         // Of the remaining incorrect lines, find any we have cached and put them in the right place
         GetCachedLines();
 
-        // Of the remaining incorrect lines, get the oldest cached line and update a random line, until we've reached our CPU quota
+        // Of the remaining incorrect lines, get the oldest cached line
+        // and update a random line, until we've reached our CPU quota
         UpdateIncorrectLines();
 
         // If/when time runs out, fill the rest of the incorrect, non-corruption lines with a random unused corruption line
@@ -288,7 +298,8 @@ public class u3d_text_3ngine : MonoBehaviour
             WidthChars = maxWidth;
         }
 
-        // TODO: need to ADJUST the GameObject collections below, not just create new ones. GameObjects dont magically get garbage collected.
+        // TODO: need to ADJUST the GameObject collections below, not just create new ones.
+        //       GameObjects dont magically get garbage collected.
 
         // Loop through the lines and create the objects we need.
         lineOffsets = new float[HeightChars];
@@ -333,7 +344,12 @@ public class u3d_text_3ngine : MonoBehaviour
                 newLineRect.localPosition = new Vector3(0, curOffset);
 
                 // Generate corruption text and create the mesh and vertex colors for it.
-                string corrText = string.Join("", Enumerable.Range(0, WidthChars).Select(cur => Random.value > 0.4 ? string.Format("`{0}{1}`", HackmudColors.ElementAt(r.Next(HackmudColors.Count)).Key, corruption_chars[(int)(Random.value * corruption_chars.Length)]) : " ").ToArray());
+                string corrText = string.Join("", Enumerable.Range(0, WidthChars)
+                    .Select(cur => Random.value > 0.4 ?
+                            string.Format("`{0}{1}`", HackmudColors.ElementAt(r.Next(HackmudColors.Count)).Key,
+                                          corruption_chars[(int)(Random.value * corruption_chars.Length)]) :
+                            " ").ToArray());
+
                 UpdateLine(newLine, corrText);
 
                 unusedCorruptedLines.Add(newLine);
@@ -396,7 +412,8 @@ public class u3d_text_3ngine : MonoBehaviour
     private void CheckCorruptionTime()
     {
         // Get the currently displayed corrupted lines.
-        int[] corruptedLines = Enumerable.Range(0, HeightChars).Where(cur => lineText[cur] == null && lines[cur] != null).ToArray();
+        int[] corruptedLines = Enumerable.Range(0, HeightChars)
+            .Where(cur => lineText[cur] == null && lines[cur] != null).ToArray();
 
         // No corrupted lines, then do nothing
         if (corruptedLines.Length == 0)
@@ -404,7 +421,8 @@ public class u3d_text_3ngine : MonoBehaviour
             return;
         }
 
-        // If the corruption has expired, then remove it, and later new random corruption will be made (gives it kindof a glitchy feel)
+        // If the corruption has expired, then remove it,
+        // and later new random corruption will be made (gives it kindof a glitchy feel)
         if ((DateTime.Now - lastCorruptionChange).TotalMilliseconds > maxCorruptionDurationMs)
         {
             foreach (int curIndex in corruptedLines)
@@ -470,7 +488,8 @@ public class u3d_text_3ngine : MonoBehaviour
     /// </summary>
     private void UpdateIncorrectLines()
     {
-        // Get the remaining incorrect lines and shuffle them up, so that it's a bit random how corruption appears if we run out of time.
+        // Get the remaining incorrect lines and shuffle them up,
+        // so that it's a bit random how corruption appears if we run out of time.
         int[] incorrectLines = Enumerable.Range(0, HeightChars).Where(cur => lineText[cur] == null).ToArray();
         Shuffle(incorrectLines);
 
@@ -519,7 +538,11 @@ public class u3d_text_3ngine : MonoBehaviour
         // Remove the now used lines from our unused line collections
         HashSet <GameObject> nowUsedLines = new HashSet<GameObject>(unusedLinesAge.Take(newLinesCreated));
         unusedLinesAge = unusedLinesAge.Skip(newLinesCreated).ToList();
-        unusedLinesLookup = unusedLinesLookup.Select(cur => new KeyValuePair<string, List<GameObject>>(cur.Key, cur.Value.Where(curList => !nowUsedLines.Contains(curList)).ToList())).Where(cur => cur.Value.Count > 0).ToDictionary(cur => cur.Key, cur => cur.Value);
+        unusedLinesLookup = unusedLinesLookup
+            .Select(cur => new KeyValuePair<string, List<GameObject>>(cur.Key, cur.Value
+                .Where(curList => !nowUsedLines.Contains(curList)).ToList()))
+            .Where(cur => cur.Value.Count > 0)
+            .ToDictionary(cur => cur.Key, cur => cur.Value);
     }
 
     /// <summary>
@@ -532,33 +555,42 @@ public class u3d_text_3ngine : MonoBehaviour
         // Get the TMP object
         TextMeshProUGUI lineGui = lineToUse.GetComponent<TextMeshProUGUI>();
 
+        // Used to store the display characters and display colors per character
         StringBuilder sb = new StringBuilder();
         Color32[] colors = new Color32[maxWidth];
 
-        // TODO: support numbers and specials
-        Regex colorRegex = new Regex("`([A-Za-z])(?!(:.?|.?:)`)([^`\n]+)`");
+        // Match the input string to the color regex
+        Regex colorRegex = new Regex("`([0-9A-Za-z])(?!(:.?|.?:)`)([^`\n]+)`");
         MatchCollection matches = colorRegex.Matches(curText);
+
+        // Tracks the input index and output index
         int curCharSource = 0;
         int curCharDest = 0;
 
         foreach (Match curMatch in matches)
         {
+            // Copy all characters between the last match and the current match to the output with default colors
             if (curMatch.Index != curCharSource)
             {
                 sb.Append(curText.Substring(curCharSource, curMatch.Index - curCharSource));
                 SetColors(colors, defaultColor, curCharDest, curMatch.Index - curCharSource);
+
+                // Track where we are in the output
                 curCharDest += curMatch.Index - curCharSource;
             }
 
+            // Copy all chars in the current match to the output with the specified color
             string deColVal = curMatch.Groups[3].Captures[0].Value;
 
             sb.Append(deColVal);
             SetColors(colors, curMatch.Groups[1].Captures[0].Value[0], curCharDest, deColVal.Length);
 
+            // Track where we are in the input and output
             curCharSource = curMatch.Index + curMatch.Length;
             curCharDest += deColVal.Length;
         }
 
+        // Copy all characters between the last match and the end of the input to the output with default colors
         if (curCharSource != (curText.Length))
         {
             sb.Append(curText.Substring(curCharSource, curText.Length - curCharSource));
@@ -577,32 +609,42 @@ public class u3d_text_3ngine : MonoBehaviour
         lineGui.SetText(newVal);
         lineGui.ForceMeshUpdate();
 
+        // Get the unity components that we need to update
         CanvasRenderer renderer = lineToUse.GetComponent<CanvasRenderer>();
         Mesh mesh = lineGui.textInfo.meshInfo[0].mesh;
 
-        //// IMPORTANT!!! mesh.vertices is O(n), NOT O(1)!!!!!
+        // Create a color array representing the correct number of verticies
+        // This needs to be done after ForceMeshUpdate, which is why we don't create this array correctly the first time
+        // IMPORTANT!!! mesh.vertices is O(n), NOT O(1)!!!!!
         int length = mesh.vertices.Length;
         Color32[] finalColors = new Color32[length];
 
+        // Only process visible characters, as non-visible characters don't have verticies
         foreach (TMP_CharacterInfo curCharInfo in lineGui.textInfo.characterInfo.Where(cur => cur.isVisible))
         {
+            // Get the color and the start vertex
             Color32 charMeshColor = colors[curCharInfo.index];
             int startIndex = curCharInfo.vertexIndex;
 
+            // Update the vertex colors
             finalColors[startIndex + 0] = charMeshColor;
             finalColors[startIndex + 1] = charMeshColor;
             finalColors[startIndex + 2] = charMeshColor;
             finalColors[startIndex + 3] = charMeshColor;
         }
 
-        Color32 meshColor = HackmudColors[defaultColor];
-
+        // Update the colors on the final object
         mesh.colors32 = finalColors;
         renderer.SetMesh(mesh);
-
-        Color32[] colorsasd = lineToUse.GetComponent<TextMeshProUGUI>().textInfo.meshInfo[0].mesh.colors32;
     }
 
+    /// <summary>
+    /// Sets the specified color on the specified range in the specified color array
+    /// </summary>
+    /// <param name="colors">The array to set colors within</param>
+    /// <param name="color">The color to set in the array</param>
+    /// <param name="startIndex">The start index in the array to set the color</param>
+    /// <param name="length">The length of elements in the array to set the color</param>
     private void SetColors(Color32[] colors, char color, int startIndex, int length)
     {
         Color32 meshColor = HackmudColors[color];
