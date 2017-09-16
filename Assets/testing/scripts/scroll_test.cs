@@ -86,7 +86,7 @@ public class scroll_test : MonoBehaviour
                 break;
             case TestMode.HoldBottom:
                 {
-                    if ((engine.CorruptedLines > 0) && (engine.CorruptedLines >= lastCorrCount))
+                    if ((engine.CorruptedLines > 5) && (engine.CorruptedLines >= lastCorrCount))
                     {
                         mode = TestMode.DownSwing;
                     }
