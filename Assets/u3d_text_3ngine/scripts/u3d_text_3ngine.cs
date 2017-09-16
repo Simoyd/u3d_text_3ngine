@@ -621,9 +621,6 @@ public class u3d_text_3ngine : MonoBehaviour
         // Get the remaining incorrect lines
         int[] incorrectLines = Enumerable.Range(0, HeightChars).Where(cur => lines[cur] == null).ToArray();
 
-        // Save the total number of corrupted lines for Debug/Analysis
-        CorruptedLines = incorrectLines.Length;
-
         if ((CorruptedLines > 0) && 
             (Enumerable.Range(0, HeightChars).Where(cur => lines[cur] != null && lineText[cur] == null).Count() == 0))
         {
@@ -657,6 +654,9 @@ public class u3d_text_3ngine : MonoBehaviour
     /// </summary>
     private void DisableUnusedObjects()
     {
+        // Save the total number of corrupted lines for Debug/Analysis
+        CorruptedLines = HeightChars - unusedCorruptedLines.Count;
+
         unusedLinesAge.ForEach(cur => DisableGuiObject(cur));
         unusedCorruptedLines.ForEach(cur => DisableGuiObject(cur));
     }

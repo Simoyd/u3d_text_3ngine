@@ -10,7 +10,6 @@ public class scroll_test : MonoBehaviour
 {
     enum TestMode
     {
-        Start,
         HoldTop,
         DownSwing,
         HoldBottom,
@@ -21,11 +20,12 @@ public class scroll_test : MonoBehaviour
 
     private static System.Random r = new System.Random();
     public static double linesPerSecond = 1;
+    public static int height = 0;
 
     private u3d_text_3ngine engine;
     private Stopwatch stopwatch;
     private double accumulator = 0;
-    private TestMode mode = TestMode.Start;
+    private TestMode mode = TestMode.UpSwing;
 
     private long msSinceChange = 0;
     private int lastCorrCount = 0;
@@ -47,15 +47,20 @@ public class scroll_test : MonoBehaviour
 
         accumulator += elapsed;
 
+        if (accumulator > 1000)
+        {
+            accumulator = 1000;
+        }
+
         TestMode orgMode = mode;
 
         switch (mode)
         {
-            case TestMode.Start:
+            case TestMode.UpSwing:
                 {
                     ++linesPerSecond;
 
-                    if (engine.CorruptedLines > 0)
+                    if (engine.CorruptedLines < (engine.HeightChars * 0.4))
                     {
                         mode = TestMode.HoldTop;
                     }
@@ -63,7 +68,7 @@ public class scroll_test : MonoBehaviour
                 break;
             case TestMode.HoldTop:
                 {
-                    if (engine.CorruptedLines == 0)
+                    if (engine.CorruptedLines < (engine.HeightChars * 0.2))
                     {
                         mode = TestMode.UpSwing;
                     }
@@ -86,7 +91,7 @@ public class scroll_test : MonoBehaviour
                 break;
             case TestMode.HoldBottom:
                 {
-                    if ((engine.CorruptedLines > 5) && (engine.CorruptedLines >= lastCorrCount))
+                    if ((engine.CorruptedLines > (engine.HeightChars * 0.1)) && (engine.CorruptedLines >= lastCorrCount))
                     {
                         mode = TestMode.DownSwing;
                     }
@@ -97,21 +102,16 @@ public class scroll_test : MonoBehaviour
                     }
                 }
                 break;
-            case TestMode.UpSwing:
-                {
-                    ++linesPerSecond;
-
-                    if (engine.CorruptedLines > 0)
-                    {
-                        mode = TestMode.HoldTop;
-                    }
-                }
-                break;
         }
 
         if (linesPerSecond < 1)
         {
             linesPerSecond = 1;
+        }
+
+        if (linesPerSecond > (engine.HeightChars * 60))
+        {
+            linesPerSecond = (engine.HeightChars / 60) + 1;
         }
 
         lastCorrCount = engine.CorruptedLines;
@@ -136,5 +136,7 @@ public class scroll_test : MonoBehaviour
 
             accumulator -= msPerLine;
         }
+
+        height = engine.HeightChars;
     }
 }
