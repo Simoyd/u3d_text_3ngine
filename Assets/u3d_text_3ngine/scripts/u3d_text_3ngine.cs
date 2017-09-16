@@ -9,13 +9,14 @@ using System.Text;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
-using Random = UnityEngine.Random;
+using Random = System.Random;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 /// <summary>
 /// Class used to create a large block of high-performance text
 /// </summary>
 [AddComponentMenu("UI/u3d_text_3ngine")]
+[RequireComponent(typeof(RectTransform))]
 public class u3d_text_3ngine : MonoBehaviour
 {
     #region Static / Constant
@@ -98,11 +99,10 @@ public class u3d_text_3ngine : MonoBehaviour
                            255);
     }
 
-    // TODO: replace all of unity's garbage with this one.
     /// <summary>
     /// Unity's random number generator is bad
     /// </summary>
-    private static System.Random r = new System.Random();
+    private static Random r = new Random();
 
     #endregion
 
@@ -260,12 +260,12 @@ public class u3d_text_3ngine : MonoBehaviour
         // Ensure the template is enabled
         EnableGuiObject(template);
 
-        // Get the canvas we're drawing on, and fit the template to it for measuring
-        RectTransform canvas = gameObject.GetComponent<RectTransform>();
+        // Get the rect we're drawing in, and fit the template to it for measuring
+        RectTransform objectRect = gameObject.GetComponent<RectTransform>();
 
         RectTransform templateRect = template.GetComponent<RectTransform>();
         templateRect.localPosition = new Vector3(0, 0);
-        templateRect.sizeDelta = new Vector2(canvas.rect.width, canvas.rect.height);
+        templateRect.sizeDelta = new Vector2(objectRect.rect.width, objectRect.rect.height);
 
         TextMeshProUGUI templateGui = template.GetComponent<TextMeshProUGUI>();
         templateGui.SetText("AB\nC");
@@ -276,8 +276,8 @@ public class u3d_text_3ngine : MonoBehaviour
         float charHeight = templateGui.textInfo.characterInfo[0].topLeft.y - templateGui.textInfo.characterInfo[3].topLeft.y;
 
         // Get the width and height our area in chars
-        int newWidthChars = Math.Max(1, (int)Mathf.Floor(canvas.rect.width / charWidth));
-        int newHeightChars = Math.Max(1, (int)Mathf.Floor(canvas.rect.height / charHeight));
+        int newWidthChars = Math.Max(1, (int)Mathf.Floor(objectRect.rect.width / charWidth));
+        int newHeightChars = Math.Max(1, (int)Mathf.Floor(objectRect.rect.height / charHeight));
 
         // If it's already correct, then don't process anything
         if ((WidthChars == newWidthChars) && (HeightChars == newHeightChars))
@@ -312,7 +312,7 @@ public class u3d_text_3ngine : MonoBehaviour
         for (int i = 0; i < HeightChars; ++i)
         {
             // Calculate the y offset for the current line
-            float curOffset = canvas.rect.height - (charHeight * i + canvas.rect.height / 2 );
+            float curOffset = objectRect.rect.height - (charHeight * i + objectRect.rect.height / 2 );
 
             // Save the y offset so we can move corruption lines and cached lines around easier
             lineOffsets[i] = curOffset;
@@ -326,7 +326,7 @@ public class u3d_text_3ngine : MonoBehaviour
                 {
                     newLine = Instantiate(template, transform);
                     newLineRect = newLine.GetComponent<RectTransform>();
-                    newLineRect.sizeDelta = new Vector2(canvas.rect.width, 0);
+                    newLineRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
                     newLineRect.localPosition = new Vector3(0, curOffset);
 
                     blankCachedLines.Add(newLine);
@@ -340,14 +340,14 @@ public class u3d_text_3ngine : MonoBehaviour
                 // Create objects for the corrupted lines
                 newLine = Instantiate(template, transform);
                 newLineRect = newLine.GetComponent<RectTransform>();
-                newLineRect.sizeDelta = new Vector2(canvas.rect.width, 0);
+                newLineRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
                 newLineRect.localPosition = new Vector3(0, curOffset);
 
                 // Generate corruption text and create the mesh and vertex colors for it.
                 string corrText = string.Join("", Enumerable.Range(0, WidthChars)
-                    .Select(cur => Random.value > 0.4 ?
+                    .Select(cur => r.NextDouble() > 0.4 ?
                             string.Format("`{0}{1}`", HackmudColors.ElementAt(r.Next(HackmudColors.Count)).Key,
-                                          corruption_chars[(int)(Random.value * corruption_chars.Length)]) :
+                                          corruption_chars[r.Next(corruption_chars.Length)]) :
                             " ").ToArray());
 
                 UpdateLine(newLine, corrText);
@@ -358,7 +358,7 @@ public class u3d_text_3ngine : MonoBehaviour
             // Create objects for the main on-screen lines
             newLine = Instantiate(template, transform);
             newLineRect = newLine.GetComponent<RectTransform>();
-            newLineRect.sizeDelta = new Vector2(canvas.rect.width, 0);
+            newLineRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
             newLineRect.localPosition = new Vector3(0, curOffset);
 
             // TODO: this can be optimised
@@ -674,7 +674,7 @@ public class u3d_text_3ngine : MonoBehaviour
         foreach (int curIndex in incorrectLines)
         {
             // Take a line from the unused collection
-            int corrIndex = (int)(Random.value * unusedCorruptedLines.Count);
+            int corrIndex = r.Next(unusedCorruptedLines.Count);
             GameObject lineToUse = unusedCorruptedLines[corrIndex];
             unusedCorruptedLines.RemoveAt(corrIndex);
 
@@ -749,7 +749,7 @@ public class u3d_text_3ngine : MonoBehaviour
     {
         for (int i = 0; i < curArray.Length; i++)
         {
-            int idx = (int)(Random.value * curArray.Length);
+            int idx = r.Next(curArray.Length);
 
             T curVar = curArray[i];
             curArray[i] = curArray[idx];

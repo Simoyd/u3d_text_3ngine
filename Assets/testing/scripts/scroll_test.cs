@@ -4,6 +4,7 @@
 
 using System.Linq;
 using UnityEngine;
+using Random = System.Random;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 public class scroll_test : MonoBehaviour
@@ -18,7 +19,7 @@ public class scroll_test : MonoBehaviour
 
     private const double percentFull = 1.0;
 
-    private static System.Random r = new System.Random();
+    private static Random r = new Random();
     public static double linesPerSecond = 1;
     public static int height = 0;
 
