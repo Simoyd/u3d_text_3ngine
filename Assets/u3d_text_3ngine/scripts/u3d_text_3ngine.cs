@@ -5,15 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
 using TMPro;
 using UnityEngine;
-using Random = UnityEngine.Random;
+using Random = System.Random;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 /// <summary>
 /// Class used to create a large block of high-performance text
 /// </summary>
 [AddComponentMenu("UI/u3d_text_3ngine")]
+[RequireComponent(typeof(RectTransform))]
+[DisallowMultipleComponent]
 public class u3d_text_3ngine : MonoBehaviour
 {
     #region Static / Constant
@@ -41,23 +45,42 @@ public class u3d_text_3ngine : MonoBehaviour
     private const int maxCpuTimePercent = 10;
 
     /// <summary>
+    /// The color to use as default for uncolored text
+    /// </summary>
+    private const char defaultColor = 'S';
+
+    /// <summary>
     /// Color lookup used for standard hackmud color letters
     /// </summary>
-    private static readonly Dictionary<char, Color32> HackmudColors = new Dictionary<char, Color32>() {
-        { 'A', HexToColor("FFFFFF") }, { 'B', HexToColor("CACACA") }, { 'C', HexToColor("9B9B9B") }, { 'D', HexToColor("FF0000") },
-        { 'E', HexToColor("FF8383") }, { 'F', HexToColor("FF8000") }, { 'G', HexToColor("F3AA6F") }, { 'H', HexToColor("FBC803") },
-        { 'I', HexToColor("FFD863") }, { 'J', HexToColor("FFF404") }, { 'K', HexToColor("F3F998") }, { 'L', HexToColor("1EFF00") },
-        { 'M', HexToColor("B3FF9B") }, { 'N', HexToColor("00FFFF") }, { 'O', HexToColor("8FE6FF") }, { 'P', HexToColor("0070DD") },
-        { 'Q', HexToColor("A4E3FF") }, { 'R', HexToColor("0000FF") }, { 'S', HexToColor("7AB2F4") }, { 'T', HexToColor("B035EE") },
-        { 'U', HexToColor("E6C4FF") }, { 'V', HexToColor("FF00EC") }, { 'W', HexToColor("FF96E0") }, { 'X', HexToColor("FF0070") },
-        { 'Y', HexToColor("FF6A98") }, { 'Z', HexToColor("0C112B") }, { 'a', HexToColor("000000") }, { 'b', HexToColor("3F3F3F") },
-        { 'c', HexToColor("676767") }, { 'd', HexToColor("7D0000") }, { 'e', HexToColor("8E3434") }, { 'f', HexToColor("A34F00") },
-        { 'g', HexToColor("725437") }, { 'h', HexToColor("A88600") }, { 'i', HexToColor("B2934A") }, { 'j', HexToColor("939500") },
-        { 'k', HexToColor("495225") }, { 'l', HexToColor("299400") }, { 'm', HexToColor("23381B") }, { 'n', HexToColor("00535B") },
-        { 'o', HexToColor("324A4C") }, { 'p', HexToColor("0073A6") }, { 'q', HexToColor("385A6C") }, { 'r', HexToColor("010067") },
-        { 's', HexToColor("507AA1") }, { 't', HexToColor("601C81") }, { 'u', HexToColor("43314C") }, { 'v', HexToColor("8C0069") },
-        { 'w', HexToColor("973984") }, { 'x', HexToColor("880024") }, { 'y', HexToColor("762E4A") }, { 'z', HexToColor("101215") },
+    public static readonly Dictionary<char, Color32> HackmudColors = new Dictionary<char, Color32>() {
+        { 'A', HexToColor("FFFFFF") }, { 'B', HexToColor("CACACA") }, { 'C', HexToColor("9B9B9B") },
+        { 'D', HexToColor("FF0000") }, { 'E', HexToColor("FF8383") }, { 'F', HexToColor("FF8000") },
+        { 'G', HexToColor("F3AA6F") }, { 'H', HexToColor("FBC803") }, { 'I', HexToColor("FFD863") },
+        { 'J', HexToColor("FFF404") }, { 'K', HexToColor("F3F998") }, { 'L', HexToColor("1EFF00") },
+        { 'M', HexToColor("B3FF9B") }, { 'N', HexToColor("00FFFF") }, { 'O', HexToColor("8FE6FF") },
+        { 'P', HexToColor("0070DD") }, { 'Q', HexToColor("A4E3FF") }, { 'R', HexToColor("0000FF") },
+        { 'S', HexToColor("7AB2F4") }, { 'T', HexToColor("B035EE") }, { 'U', HexToColor("E6C4FF") },
+        { 'V', HexToColor("FF00EC") }, { 'W', HexToColor("FF96E0") }, { 'X', HexToColor("FF0070") },
+        { 'Y', HexToColor("FF6A98") }, { 'Z', HexToColor("0C112B") }, { 'a', HexToColor("000000") },
+        { 'b', HexToColor("3F3F3F") }, { 'c', HexToColor("676767") }, { 'd', HexToColor("7D0000") },
+        { 'e', HexToColor("8E3434") }, { 'f', HexToColor("A34F00") }, { 'g', HexToColor("725437") },
+        { 'h', HexToColor("A88600") }, { 'i', HexToColor("B2934A") }, { 'j', HexToColor("939500") },
+        { 'k', HexToColor("495225") }, { 'l', HexToColor("299400") }, { 'm', HexToColor("23381B") },
+        { 'n', HexToColor("00535B") }, { 'o', HexToColor("324A4C") }, { 'p', HexToColor("0073A6") },
+        { 'q', HexToColor("385A6C") }, { 'r', HexToColor("010067") }, { 's', HexToColor("507AA1") },
+        { 't', HexToColor("601C81") }, { 'u', HexToColor("43314C") }, { 'v', HexToColor("8C0069") },
+        { 'w', HexToColor("973984") }, { 'x', HexToColor("880024") }, { 'y', HexToColor("762E4A") },
+        { 'z', HexToColor("101215") }, { '0', HexToColor("9B9B9B") }, { '1', HexToColor("FFFFFF") },
+        { '2', HexToColor("1EFF00") }, { '3', HexToColor("0070DD") }, { '4', HexToColor("B035EE") },
+        { '5', HexToColor("FF8000") }, { '6', HexToColor("FF8000") }, { '7', HexToColor("FF8000") },
+        { '8', HexToColor("FF8000") }, { '9', HexToColor("FF8000") },
     };
+
+    /// <summary>
+    /// Hackmud corruption characters
+    /// </summary>
+    public static readonly char[] corruption_chars = new char[] { (char)162, (char)164, (char)166, (char)167, (char)168,
+                                                                  (char)169, (char)170, (char)193, (char)195 };
 
     /// <summary>
     /// Used for accumulating how many chars were rendered this frame
@@ -72,10 +95,15 @@ public class u3d_text_3ngine : MonoBehaviour
     private static Color32 HexToColor(string hex)
     {
         return new Color32(Convert.ToByte(hex.Substring(0, 2), 16),
-                           Convert.ToByte(hex.Substring(0, 2), 16),
-                           Convert.ToByte(hex.Substring(0, 2), 16),
+                           Convert.ToByte(hex.Substring(2, 2), 16),
+                           Convert.ToByte(hex.Substring(4, 2), 16),
                            255);
     }
+
+    /// <summary>
+    /// Unity's random number generator is bad
+    /// </summary>
+    private static Random r = new Random();
 
     #endregion
 
@@ -92,8 +120,15 @@ public class u3d_text_3ngine : MonoBehaviour
         // Ensure to calibrate on first iteration
         RecalibrateSize = true;
 
+        // Create the template TMP object
+        template = new GameObject("tmp_template");
+        template.transform.parent = transform;
+        TextMeshProUGUI templateGui = template.AddComponent<TextMeshProUGUI>();
+        templateGui.font = FontAsset;
+        templateGui.fontSharedMaterial = FontAsset.material;
+        templateGui.fontSize = FontSize;
+
         // Disable the template so we don't see it
-        template = transform.GetChild(0).gameObject;
         DisableGuiObject(template);
 
         // Ensure this is set to something. The processing logic will clean it up better as long as it's not null.
@@ -141,7 +176,7 @@ public class u3d_text_3ngine : MonoBehaviour
     private Dictionary<string, List<GameObject>> unusedLinesLookup = new Dictionary<string, List<GameObject>>();
 
     /// <summary>
-    /// The corruption lines that are not currently ont he screen
+    /// The corruption lines that are not currently on the screen
     /// </summary>
     private List<GameObject> unusedCorruptedLines = new List<GameObject>();
 
@@ -160,9 +195,34 @@ public class u3d_text_3ngine : MonoBehaviour
     /// </summary>
     private Stopwatch stopwatch = new Stopwatch();
 
+    /// <summary>
+    /// Current width of our draw area
+    /// </summary>
+    private float curWidth = 0;
+
+    /// <summary>
+    /// Current height of our draw area
+    /// </summary>
+    private float curHeight = 0;
+
     #endregion
 
     #region Public Members
+
+    #region Unity Editor Visible
+
+    /// <summary>
+    /// The font asset to user in this object
+    /// </summary>
+    public TMP_FontAsset FontAsset;
+
+    // TODO: allow this to be changed runtime, update template, then do normal recalibrate
+    /// <summary>
+    /// The font size to use for this object
+    /// </summary>
+    public float FontSize;
+
+    #endregion
 
     /// <summary>
     /// Gets or sets the text that we are currently trying to display
@@ -191,10 +251,14 @@ public class u3d_text_3ngine : MonoBehaviour
 
     #endregion
 
+    #region Public Methods
+
+    #region Unity Methods
+
     /// <summary>
     /// Update is called once per frame
     /// </summary>
-    void Update()
+    public void Update()
     {
         // Check if the size has changed, and recalibrate the game objects if it has
         CheckRecalibrate();
@@ -208,7 +272,8 @@ public class u3d_text_3ngine : MonoBehaviour
         // Of the remaining incorrect lines, find any we have cached and put them in the right place
         GetCachedLines();
 
-        // Of the remaining incorrect lines, get the oldest cached line and update a random line, until we've reached our CPU quota
+        // Of the remaining incorrect lines, get the oldest cached line
+        // and update a random line, until we've reached our CPU quota
         UpdateIncorrectLines();
 
         // If/when time runs out, fill the rest of the incorrect, non-corruption lines with a random unused corruption line
@@ -218,11 +283,26 @@ public class u3d_text_3ngine : MonoBehaviour
         DisableUnusedObjects();
     }
 
+    #endregion
+
+    #endregion
+
+    #region Private Methods
+
     /// <summary>
     /// Check if the size has changed, and recalibrate the game objects if it has
     /// </summary>
     private void CheckRecalibrate()
     {
+        // Get the rect we're drawing in, and fit the template to it for measuring
+        RectTransform objectRect = gameObject.GetComponent<RectTransform>();
+
+        // If the size has changed, then recalibrate
+        if ((objectRect.rect.width != curWidth) || (objectRect.rect.height != curHeight))
+        {
+            RecalibrateSize = true;
+        }
+
         // Return if recalibration is not requested
         if (!RecalibrateSize)
         {
@@ -232,12 +312,10 @@ public class u3d_text_3ngine : MonoBehaviour
         // Ensure the template is enabled
         EnableGuiObject(template);
 
-        // Get the canvas we're drawing on, and fit the template to it for measuring
-        RectTransform canvas = gameObject.GetComponent<RectTransform>();
-
+        // Fit the template to our rect for measuring
         RectTransform templateRect = template.GetComponent<RectTransform>();
         templateRect.localPosition = new Vector3(0, 0);
-        templateRect.sizeDelta = new Vector2(canvas.rect.width, canvas.rect.height);
+        templateRect.sizeDelta = new Vector2(objectRect.rect.width, objectRect.rect.height);
 
         TextMeshProUGUI templateGui = template.GetComponent<TextMeshProUGUI>();
         templateGui.SetText("AB\nC");
@@ -248,13 +326,34 @@ public class u3d_text_3ngine : MonoBehaviour
         float charHeight = templateGui.textInfo.characterInfo[0].topLeft.y - templateGui.textInfo.characterInfo[3].topLeft.y;
 
         // Get the width and height our area in chars
-        int newWidthChars = Math.Max(1, (int)Mathf.Floor(canvas.rect.width / charWidth));
-        int newHeightChars = Math.Max(1, (int)Mathf.Floor(canvas.rect.height / charHeight));
+        int newWidthChars = Math.Max(1, (int)Mathf.Floor(objectRect.rect.width / charWidth));
+        int newHeightChars = Math.Max(1, (int)Mathf.Floor(objectRect.rect.height / charHeight));
+
+        // Save the width and height of our screen area so we don't recalibrate again
+        curWidth = objectRect.rect.width;
+        curHeight = objectRect.rect.height;
 
         // If it's already correct, then don't process anything
         if ((WidthChars == newWidthChars) && (HeightChars == newHeightChars))
         {
+            // Disable the template because we no longer need it
+            DisableGuiObject(template);
+
+            // Recalibration complete, don't do it again next frame
+            RecalibrateSize = false;
+
             return;
+        }
+
+        // HeightChars will only be 0 on first calibration
+        if (HeightChars > 0)
+        {
+            // Move all lines out of our on-screen collections
+            unusedLinesAge.AddRange(Enumerable.Range(0, HeightChars)
+                .Where(cur => lineText[cur] != null).Select(cur => lines[cur]));
+
+            unusedCorruptedLines.AddRange(Enumerable.Range(0, HeightChars)
+                .Where(cur => lineText[cur] == null).Select(cur => lines[cur]));
         }
 
         // Save the new values
@@ -264,77 +363,88 @@ public class u3d_text_3ngine : MonoBehaviour
         // Save the total size for debug/analysis purposes
         TotalChars[this] = WidthChars * HeightChars;
 
-        // Any larger than this width appears to throw exception, so don't let it happen.
+        // Any larger than this width appears to throw exceptions, so don't let it happen.
         if (WidthChars > maxWidth)
         {
-            throw new Exception("Big Problem!!!");
+            WidthChars = maxWidth;
         }
 
-        // TODO: need to ADJUST the GameObject collections below, not just create new ones. GameObjects dont magically get garbage collected.
+        // Save the y offset so we can move corruption lines and cached lines around easier
+        lineOffsets = Enumerable.Range(0, HeightChars)
+            .Select(cur => objectRect.rect.height - (charHeight * cur + objectRect.rect.height / 2)).ToArray();
 
-        // Loop through the lines and create the objects we need.
-        lineOffsets = new float[HeightChars];
+        // Clear the lines and line texts, and set to new size.
         lines = new GameObject[HeightChars];
         lineText = new string[HeightChars];
 
-        GameObject newLine;
-        RectTransform newLineRect;
-
-        for (int i = 0; i < HeightChars; ++i)
+        // Remove any lines we no longer need
+        if (unusedLinesAge.Count > (HeightChars + maxCachedLines))
         {
-            // Calculate the y offset for the current line
-            float curOffset = canvas.rect.height - (charHeight * i + canvas.rect.height / 2 );
-
-            // Save the y offset so we can move corruption lines and cached lines around easier
-            lineOffsets[i] = curOffset;
-
-            if (i == 0)
+            unusedLinesAge.Skip(HeightChars + maxCachedLines).ToList().ForEach(cur =>
             {
-                // Create objects for the cached lines
-                List<GameObject> blankCachedLines = new List<GameObject>();
+                DisableGuiObject(cur);
+                Destroy(cur);
+            });
 
-                for (int j = 0; j < maxCachedLines; ++j)
-                {
-                    newLine = Instantiate(template, transform);
-                    newLineRect = newLine.GetComponent<RectTransform>();
-                    newLineRect.sizeDelta = new Vector2(canvas.rect.width, 0);
-                    newLineRect.localPosition = new Vector3(0, curOffset);
-
-                    blankCachedLines.Add(newLine);
-                    unusedLinesAge.Add(newLine);
-                }
-
-                unusedLinesLookup[""] = blankCachedLines;
-            }
-            else
-            {
-                // Create objects for the corrupted lines
-                newLine = Instantiate(template, transform);
-                newLineRect = newLine.GetComponent<RectTransform>();
-                newLineRect.sizeDelta = new Vector2(canvas.rect.width, 0);
-                newLineRect.localPosition = new Vector3(0, curOffset);
-
-                TextMeshProUGUI lineGui = newLine.GetComponent<TextMeshProUGUI>();
-                string corrText = new string(Enumerable.Range(0, WidthChars).Select(cur => Random.value > 0.4 ? (char)(Random.value * 9 + 162) : ' ').ToArray());
-                lineGui.SetText(corrText);
-
-                unusedCorruptedLines.Add(newLine);
-            }
-
-            // Create objects for the main on-screen lines
-            newLine = Instantiate(template, transform);
-            newLineRect = newLine.GetComponent<RectTransform>();
-            newLineRect.sizeDelta = new Vector2(canvas.rect.width, 0);
-            newLineRect.localPosition = new Vector3(0, curOffset);
-
-            // TODO: this can be optimised
-            unusedLinesLookup[""].Add(newLine);
-            unusedLinesAge.Add(newLine);
-
-            // No lines populated to start
-            lines[i] = null;
-            lineText[i] = null;
+            unusedLinesAge = unusedLinesAge.Take(HeightChars + maxCachedLines).ToList();
         }
+
+        if (unusedCorruptedLines.Count > HeightChars)
+        {
+            unusedCorruptedLines.Skip(HeightChars).ToList().ForEach(cur =>
+            {
+                DisableGuiObject(cur);
+                Destroy(cur);
+            });
+
+            unusedCorruptedLines = unusedCorruptedLines.Take(HeightChars).ToList();
+        }
+
+        // Initialize new lines if we need them
+        while (unusedLinesAge.Count < (HeightChars + maxCachedLines))
+        {
+            // Create objects for the main on-screen lines
+            GameObject newLine = Instantiate(template, transform);
+            newLine.name = "tmp_pool_line";
+            unusedLinesAge.Add(newLine);
+        }
+
+        while (unusedCorruptedLines.Count < HeightChars)
+        {
+            // Create objects for the corrupted lines
+            GameObject newLine = Instantiate(template, transform);
+            newLine.name = "tmp_corruption_line";
+            unusedCorruptedLines.Add(newLine);
+        }
+
+        // Recreate meshes and update position for all lines (because scaling can ruin them)
+        unusedLinesAge.ForEach(cur =>
+        {
+            RectTransform curRect = cur.GetComponent<RectTransform>();
+            curRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
+            curRect.localPosition = new Vector3(0, 0);
+
+            UpdateLine(cur, "");
+        });
+
+        unusedCorruptedLines.ForEach(cur =>
+        {
+            RectTransform curRect = cur.GetComponent<RectTransform>();
+            curRect.sizeDelta = new Vector2(objectRect.rect.width, 0);
+            curRect.localPosition = new Vector3(0, 0);
+
+            // Generate corruption text and create the mesh and vertex colors for it.
+            string corrText = string.Join("", Enumerable.Range(0, WidthChars)
+                .Select(curCharNum => r.NextDouble() > 0.4 ?
+                        string.Format("`{0}{1}`", HackmudColors.ElementAt(r.Next(HackmudColors.Count)).Key,
+                                      corruption_chars[r.Next(corruption_chars.Length)]) :
+                        " ").ToArray());
+
+            UpdateLine(cur, corrText);
+        });
+
+        // Save the lines in our lookup
+        unusedLinesLookup = new Dictionary<string, List<GameObject>> { { "", new List<GameObject>(unusedLinesAge) } };
 
         // Disable the template because we no longer need it
         DisableGuiObject(template);
@@ -378,7 +488,8 @@ public class u3d_text_3ngine : MonoBehaviour
     private void CheckCorruptionTime()
     {
         // Get the currently displayed corrupted lines.
-        int[] corruptedLines = Enumerable.Range(0, HeightChars).Where(cur => lineText[cur] == null && lines[cur] != null).ToArray();
+        int[] corruptedLines = Enumerable.Range(0, HeightChars)
+            .Where(cur => lineText[cur] == null && lines[cur] != null).ToArray();
 
         // No corrupted lines, then do nothing
         if (corruptedLines.Length == 0)
@@ -386,7 +497,8 @@ public class u3d_text_3ngine : MonoBehaviour
             return;
         }
 
-        // If the corruption has expired, then remove it, and later new random corruption will be made (gives it kindof a glitchy feel)
+        // If the corruption has expired, then remove it,
+        // and later new random corruption will be made (gives it kindof a glitchy feel)
         if ((DateTime.Now - lastCorruptionChange).TotalMilliseconds > maxCorruptionDurationMs)
         {
             foreach (int curIndex in corruptedLines)
@@ -452,7 +564,8 @@ public class u3d_text_3ngine : MonoBehaviour
     /// </summary>
     private void UpdateIncorrectLines()
     {
-        // Get the remaining incorrect lines and shuffle them up, so that it's a bit random how corruption appears if we run out of time.
+        // Get the remaining incorrect lines and shuffle them up,
+        // so that it's a bit random how corruption appears if we run out of time.
         int[] incorrectLines = Enumerable.Range(0, HeightChars).Where(cur => lineText[cur] == null).ToArray();
         Shuffle(incorrectLines);
 
@@ -467,23 +580,9 @@ public class u3d_text_3ngine : MonoBehaviour
             // Get the first in the cache, which should be the oldest used line, most stale, so we can repurpose
             GameObject lineToUse = unusedLinesAge[newLinesCreated++];
 
-            // Get the TMP object
-            TextMeshProUGUI lineGui = lineToUse.GetComponent<TextMeshProUGUI>();
-
             // Move the line into position
             RectTransform lineToUseRect = lineToUse.GetComponent<RectTransform>();
             lineToUseRect.localPosition = new Vector3(0, lineOffsets[curIndex]);
-
-            // TODO: parse into text and colors
-            //StringBuilder sb = new StringBuilder();
-
-            //for (int i = 0; i < WidthChars; ++i)
-            //{
-            //    sb.AppendFormat("{0}", (char)(r.Next(26) + 'a'));
-            //}
-
-            //string newVal = sb.ToString();
-            string newVal = DisplayText[curIndex];
 
             if (lines[curIndex] != null)
             {
@@ -499,30 +598,8 @@ public class u3d_text_3ngine : MonoBehaviour
             // Enable the line in unity
             EnableGuiObject(lineToUse);
 
-            // Update the line text and regenerate the mesh
-            lineGui.SetText(newVal);
-            lineGui.ForceMeshUpdate();
-
-            // TODO: update colors based on above parsing
-            //CanvasRenderer renderer = lineToUse.GetComponent<CanvasRenderer>();
-            //Mesh mesh = lineGui.textInfo.meshInfo[0].mesh;
-
-            //// IMPORTANT!!! mesh.vertices is O(n), NOT O(1)!!!!!
-            //int length = mesh.vertices.Length;
-            //Color32[] colors = new Color32[length];
-
-            //for (int i = 0; i < length / 4; ++i)
-            //{
-            //    int j = i * 4;
-            //    Color32 curColor = new Color32((byte)r.Next(255), (byte)r.Next(255), (byte)r.Next(255), 255);
-            //    colors[j + 0] = curColor;
-            //    colors[j + 1] = curColor;
-            //    colors[j + 2] = curColor;
-            //    colors[j + 3] = curColor;
-            //}
-
-            //mesh.colors32 = colors;
-            //renderer.SetMesh(mesh);
+            // Update the Unity mesh and vertex colors
+            UpdateLine(lineToUse, DisplayText[curIndex]);
 
             // If we occupy more than whatever percent of a 60th of a second, then break out
             if (stopwatch.ElapsedMilliseconds > (1000.0 / 60.0 * (maxCpuTimePercent / 100.0)))
@@ -537,7 +614,121 @@ public class u3d_text_3ngine : MonoBehaviour
         // Remove the now used lines from our unused line collections
         HashSet <GameObject> nowUsedLines = new HashSet<GameObject>(unusedLinesAge.Take(newLinesCreated));
         unusedLinesAge = unusedLinesAge.Skip(newLinesCreated).ToList();
-        unusedLinesLookup = unusedLinesLookup.Select(cur => new KeyValuePair<string, List<GameObject>>(cur.Key, cur.Value.Where(curList => !nowUsedLines.Contains(curList)).ToList())).Where(cur => cur.Value.Count > 0).ToDictionary(cur => cur.Key, cur => cur.Value);
+        unusedLinesLookup = unusedLinesLookup
+            .Select(cur => new KeyValuePair<string, List<GameObject>>(cur.Key, cur.Value
+                .Where(curList => !nowUsedLines.Contains(curList)).ToList()))
+            .Where(cur => cur.Value.Count > 0)
+            .ToDictionary(cur => cur.Key, cur => cur.Value);
+    }
+
+    /// <summary>
+    /// Updates the Unity mesh and vertex colors for the specified line
+    /// </summary>
+    /// <param name="lineToUse">The TMP game object to update</param>
+    /// <param name="curText">The full content string with color codes</param>
+    private void UpdateLine(GameObject lineToUse, string curText)
+    {
+        // Get the TMP object
+        TextMeshProUGUI lineGui = lineToUse.GetComponent<TextMeshProUGUI>();
+
+        // Used to store the display characters and display colors per character
+        StringBuilder sb = new StringBuilder();
+        Color32[] colors = new Color32[maxWidth];
+
+        // Match the input string to the color regex
+        Regex colorRegex = new Regex("`([0-9A-Za-z])(?!(:.?|.?:)`)([^`\n]+)`");
+        MatchCollection matches = colorRegex.Matches(curText);
+
+        // Tracks the input index and output index
+        int curCharSource = 0;
+        int curCharDest = 0;
+
+        foreach (Match curMatch in matches)
+        {
+            // Copy all characters between the last match and the current match to the output with default colors
+            if (curMatch.Index != curCharSource)
+            {
+                sb.Append(curText.Substring(curCharSource, curMatch.Index - curCharSource));
+                SetColors(colors, defaultColor, curCharDest, curMatch.Index - curCharSource);
+
+                // Track where we are in the output
+                curCharDest += curMatch.Index - curCharSource;
+            }
+
+            // Copy all chars in the current match to the output with the specified color
+            string deColVal = curMatch.Groups[3].Captures[0].Value;
+
+            sb.Append(deColVal);
+            SetColors(colors, curMatch.Groups[1].Captures[0].Value[0], curCharDest, deColVal.Length);
+
+            // Track where we are in the input and output
+            curCharSource = curMatch.Index + curMatch.Length;
+            curCharDest += deColVal.Length;
+        }
+
+        // Copy all characters between the last match and the end of the input to the output with default colors
+        if (curCharSource != (curText.Length))
+        {
+            sb.Append(curText.Substring(curCharSource, curText.Length - curCharSource));
+            SetColors(colors, defaultColor, curCharDest, curText.Length - curCharSource);
+        }
+
+        string newVal = sb.ToString();
+
+        // Ensure we're not over the max length
+        if (newVal.Length > WidthChars)
+        {
+            newVal = newVal.Substring(0, WidthChars);
+        }
+
+        // Update the line text and regenerate the mesh
+        lineGui.SetText(newVal);
+        lineGui.ForceMeshUpdate();
+
+        // Get the unity components that we need to update
+        CanvasRenderer renderer = lineToUse.GetComponent<CanvasRenderer>();
+        Mesh mesh = lineGui.textInfo.meshInfo[0].mesh;
+
+        // Create a color array representing the correct number of verticies
+        // This needs to be done after ForceMeshUpdate, which is why we don't create this array correctly the first time
+        // IMPORTANT!!! mesh.vertices is O(n), NOT O(1)!!!!!
+        int length = mesh.vertices.Length;
+        Color32[] finalColors = new Color32[length];
+
+        // Only process visible characters, as non-visible characters don't have verticies
+        foreach (TMP_CharacterInfo curCharInfo in lineGui.textInfo.characterInfo.Where(cur => cur.isVisible))
+        {
+            // Get the color and the start vertex
+            Color32 charMeshColor = colors[curCharInfo.index];
+            int startIndex = curCharInfo.vertexIndex;
+
+            // Update the vertex colors
+            finalColors[startIndex + 0] = charMeshColor;
+            finalColors[startIndex + 1] = charMeshColor;
+            finalColors[startIndex + 2] = charMeshColor;
+            finalColors[startIndex + 3] = charMeshColor;
+        }
+
+        // Update the colors on the final object
+        mesh.colors32 = finalColors;
+        renderer.SetMesh(mesh);
+    }
+
+    /// <summary>
+    /// Sets the specified color on the specified range in the specified color array
+    /// </summary>
+    /// <param name="colors">The array to set colors within</param>
+    /// <param name="color">The color to set in the array</param>
+    /// <param name="startIndex">The start index in the array to set the color</param>
+    /// <param name="length">The length of elements in the array to set the color</param>
+    private void SetColors(Color32[] colors, char color, int startIndex, int length)
+    {
+        Color32 meshColor = HackmudColors[color];
+
+        for (int i = 0; i < length; ++i)
+        {
+            colors[i + startIndex] = meshColor;
+        }
     }
 
     /// <summary>
@@ -547,9 +738,6 @@ public class u3d_text_3ngine : MonoBehaviour
     {
         // Get the remaining incorrect lines
         int[] incorrectLines = Enumerable.Range(0, HeightChars).Where(cur => lines[cur] == null).ToArray();
-
-        // Save the total number of corrupted lines for Debug/Analysis
-        CorruptedLines = incorrectLines.Length;
 
         if ((CorruptedLines > 0) && 
             (Enumerable.Range(0, HeightChars).Where(cur => lines[cur] != null && lineText[cur] == null).Count() == 0))
@@ -562,7 +750,7 @@ public class u3d_text_3ngine : MonoBehaviour
         foreach (int curIndex in incorrectLines)
         {
             // Take a line from the unused collection
-            int corrIndex = (int)(Random.value * unusedCorruptedLines.Count);
+            int corrIndex = r.Next(unusedCorruptedLines.Count);
             GameObject lineToUse = unusedCorruptedLines[corrIndex];
             unusedCorruptedLines.RemoveAt(corrIndex);
 
@@ -584,6 +772,9 @@ public class u3d_text_3ngine : MonoBehaviour
     /// </summary>
     private void DisableUnusedObjects()
     {
+        // Save the total number of corrupted lines for Debug/Analysis
+        CorruptedLines = HeightChars - unusedCorruptedLines.Count;
+
         unusedLinesAge.ForEach(cur => DisableGuiObject(cur));
         unusedCorruptedLines.ForEach(cur => DisableGuiObject(cur));
     }
@@ -613,7 +804,7 @@ public class u3d_text_3ngine : MonoBehaviour
     /// <param name="curObj">The line to disable</param>
     private void DisableGuiObject(GameObject curObj)
     {
-        curObj.GetComponents<MonoBehaviour>().ToList().ForEach(cur => { if (cur.enabled) cur.enabled = false; });
+        curObj.GetComponent<CanvasRenderer>().cull = true;
     }
 
     /// <summary>
@@ -622,7 +813,7 @@ public class u3d_text_3ngine : MonoBehaviour
     /// <param name="curObj">The line to enable</param>
     private void EnableGuiObject(GameObject curObj)
     {
-        curObj.GetComponents<MonoBehaviour>().ToList().ForEach(cur => { if (!cur.enabled) cur.enabled = true; });
+        curObj.GetComponent<CanvasRenderer>().cull = false;
     }
 
     /// <summary>
@@ -634,11 +825,13 @@ public class u3d_text_3ngine : MonoBehaviour
     {
         for (int i = 0; i < curArray.Length; i++)
         {
-            int idx = (int)(Random.value * curArray.Length);
+            int idx = r.Next(curArray.Length);
 
             T curVar = curArray[i];
             curArray[i] = curArray[idx];
             curArray[idx] = curVar;
         }
     }
+
+    #endregion
 }

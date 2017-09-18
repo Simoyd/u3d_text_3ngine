@@ -4,25 +4,29 @@
 
 using System.Linq;
 using UnityEngine;
+using Random = System.Random;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 public class scroll_test : MonoBehaviour
 {
     enum TestMode
     {
-        Start,
         HoldTop,
         DownSwing,
         HoldBottom,
         UpSwing,
     }
 
+    private const double percentFull = 1.0;
+
+    private static Random r = new Random();
     public static double linesPerSecond = 1;
+    public static int height = 0;
 
     private u3d_text_3ngine engine;
     private Stopwatch stopwatch;
     private double accumulator = 0;
-    private TestMode mode = TestMode.Start;
+    private TestMode mode = TestMode.UpSwing;
 
     private long msSinceChange = 0;
     private int lastCorrCount = 0;
@@ -44,15 +48,20 @@ public class scroll_test : MonoBehaviour
 
         accumulator += elapsed;
 
+        if (accumulator > 1000)
+        {
+            accumulator = 1000;
+        }
+
         TestMode orgMode = mode;
 
         switch (mode)
         {
-            case TestMode.Start:
+            case TestMode.UpSwing:
                 {
                     ++linesPerSecond;
 
-                    if (engine.CorruptedLines > 0)
+                    if (engine.CorruptedLines < (engine.HeightChars * 0.4))
                     {
                         mode = TestMode.HoldTop;
                     }
@@ -60,7 +69,7 @@ public class scroll_test : MonoBehaviour
                 break;
             case TestMode.HoldTop:
                 {
-                    if (engine.CorruptedLines == 0)
+                    if (engine.CorruptedLines < (engine.HeightChars * 0.2))
                     {
                         mode = TestMode.UpSwing;
                     }
@@ -83,7 +92,7 @@ public class scroll_test : MonoBehaviour
                 break;
             case TestMode.HoldBottom:
                 {
-                    if ((engine.CorruptedLines > 0) && (engine.CorruptedLines >= lastCorrCount))
+                    if ((engine.CorruptedLines > (engine.HeightChars * 0.1)) && (engine.CorruptedLines >= lastCorrCount))
                     {
                         mode = TestMode.DownSwing;
                     }
@@ -94,21 +103,16 @@ public class scroll_test : MonoBehaviour
                     }
                 }
                 break;
-            case TestMode.UpSwing:
-                {
-                    ++linesPerSecond;
-
-                    if (engine.CorruptedLines > 0)
-                    {
-                        mode = TestMode.HoldTop;
-                    }
-                }
-                break;
         }
 
         if (linesPerSecond < 1)
         {
             linesPerSecond = 1;
+        }
+
+        if (linesPerSecond > (engine.HeightChars * 60))
+        {
+            linesPerSecond = (engine.HeightChars / 60) + 1;
         }
 
         lastCorrCount = engine.CorruptedLines;
@@ -126,11 +130,18 @@ public class scroll_test : MonoBehaviour
 
         while (accumulator > msPerLine)
         {
-            // TODO: put color in this test string, once color parsing is done in engine
-            string newLine = new string(Enumerable.Range(0, engine.WidthChars).Select(cur => (char)(Random.value * 26 + 'a')).ToArray());
+            string newLine = string.Join("", Enumerable.Range(0, engine.WidthChars)
+                .Select(cur => r.NextDouble() <= percentFull ?
+                        string.Format("`{0}{1}`", 
+                                      u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key,
+                                      (char)(r.Next(26) + 'a')) :
+                        " ").ToArray());
+
             engine.DisplayText = engine.DisplayText.Skip(1).Concat(new string[] { newLine }).ToArray();
 
             accumulator -= msPerLine;
         }
+
+        height = engine.HeightChars;
     }
 }
