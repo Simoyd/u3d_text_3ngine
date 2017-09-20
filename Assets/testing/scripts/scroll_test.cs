@@ -132,7 +132,8 @@ public class scroll_test : MonoBehaviour
         {
             string newLine = string.Join("", Enumerable.Range(0, engine.WidthChars)
                 .Select(cur => r.NextDouble() <= percentFull ?
-                        string.Format("`{0}{1}`", 
+                        string.Format("<c{0}{1}{2}>", 
+                                      u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key,
                                       u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key,
                                       (char)(r.Next(26) + 'a')) :
                         " ").ToArray());
