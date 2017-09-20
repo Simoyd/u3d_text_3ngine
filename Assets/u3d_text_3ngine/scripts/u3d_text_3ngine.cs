@@ -647,7 +647,69 @@ public class u3d_text_3ngine : MonoBehaviour
         fgColorStack.Push(defaultForegroundColor);
         bgColorStack.Push(defaultBackgroundColor);
 
+        int tagOpens = 0;
+        int tagCloses = 0;
         int depth = 0;
+        for (int x = 0; x < curText.Length; x++)
+        {
+            char c = curText[x];
+            switch (c)
+            {
+                case '<':
+                    // If escaped or too close to end of string to form a proper color code, just write it out
+                    if (escaped || x + 3 >= curText.Length)
+                    {
+                        break;
+                    }
+
+                    char next = curText[x + 1];
+                    // If this isn't the open color char code, treat as plain text
+                    if (next != 'c')
+                    {
+                        break;
+                    }
+                    char fgChar = curText[x + 2];
+                    char bgChar = curText[x + 3];
+
+                    // If the color code specified isn't valid, just treat this as plain text
+                    if (fgChar != '*' && HackmudColors.ContainsKey(fgChar) == false)
+                    {
+                        break;
+                    }
+                    if (bgChar != '*' && HackmudColors.ContainsKey(bgChar) == false)
+                    {
+                        break;
+                    }
+                    // We have a valid color code and we parsed it, so jump forward to the next non-consumed character
+                    x += 3;
+
+                    // Increment depth so we know we're working on a user-provided color tag
+                    depth++;
+                    tagOpens++;
+
+                    break;
+                case '>':
+                    // If this is escaped or if we don't have any active tags, treat as plain text
+                    if (escaped || depth == 0)
+                    {
+                        break;
+                    }
+
+                    // Color tag ended, decrement depth and increment closes
+                    depth--;
+                    tagCloses++;
+                    break;
+                case '\\':
+                    if (escaped == false)
+                    {
+                        escaped = true;
+                    }
+                    break;
+            }
+        }
+
+        depth = 0;
+        int mismatch = tagOpens - tagCloses;
         for (int x = 0; x < curText.Length; x++)
         {
             char c = curText[x];
@@ -666,7 +728,6 @@ public class u3d_text_3ngine : MonoBehaviour
                     {
                         goto default;
                     }
-
                     char fgChar = curText[x + 2];
                     char bgChar = curText[x + 3];
                         
@@ -680,10 +741,15 @@ public class u3d_text_3ngine : MonoBehaviour
                         goto default;
                     }
 
+                    if(mismatch > 0)
+                    {
+                        mismatch--;
+                        goto default;
+                    }
+
                     // We have a valid color code and we parsed it, so jump forward to the next non-consumed character
                     x += 3;
 
-                    // Increment depth so we know we're working on a user-provided color tag
                     depth++;
 
                     // A wildcard '*' char does not overwrite the last color code, so defer to current coloring on the stack
@@ -720,9 +786,12 @@ public class u3d_text_3ngine : MonoBehaviour
                     // If we hit default condition, we are no longer escaped, so just set to false every time
                     escaped = false;
                     sb.Append(c);
-                    // Because some characters don't get displayed, make sure we associate the color arrays with the actual string length
-                    fgColors[sb.Length-1] = fgColorStack.Peek();
-                    bgColors[sb.Length-1] = bgColorStack.Peek();
+                    if(sb.Length < maxWidth)
+                    {
+                        // Because some characters don't get displayed, make sure we associate the color arrays with the actual string length
+                        fgColors[sb.Length - 1] = fgColorStack.Peek();
+                        bgColors[sb.Length - 1] = bgColorStack.Peek();
+                    }
                     break;
             }
         }
