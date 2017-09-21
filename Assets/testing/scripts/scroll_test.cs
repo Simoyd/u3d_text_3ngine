@@ -135,7 +135,7 @@ public class scroll_test : MonoBehaviour
 
             double rand = r.NextDouble();
             string newLine = "";
-            if(rand < 0.8)
+            if(rand < 0.65)
             {
                 newLine = string.Join("", Enumerable.Range(0, engine.WidthChars)
                     .Select(cur => r.NextDouble() <= percentFull ? string.Format("<c{0}{1}{2}>", 
@@ -144,7 +144,7 @@ public class scroll_test : MonoBehaviour
                     (char)(r.Next(26) + 'a')) : " ")
                     .ToArray());
             }
-            else if (rand < 0.7)
+            else if (rand < 0.75)
             {
                 newLine = string.Format("<c{0}{1}this is a colored string>", fgColor, bgColor);
             }
