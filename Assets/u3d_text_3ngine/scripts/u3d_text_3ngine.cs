@@ -654,21 +654,25 @@ public class u3d_text_3ngine : MonoBehaviour
             int mismatch = tagOpens - tagCloses;
             for (int x = 0; x < curText.Length; x++)
             {
+                bool processChar = false;
+
                 char c = curText[x];
                 switch (c)
                 {
                     case '<':
                         // If escaped or too close to end of string to form a proper color code, just write it out
-                        if (escaped || x + 3 >= curText.Length)
+                        if (escaped || ((x + 3) >= curText.Length))
                         {
-                            goto default;
+                            processChar = true;
+                            break;
                         }
 
                         char next = curText[x + 1];
                         // If this isn't the open color char code, treat as plain text
                         if (next != 'c')
                         {
-                            goto default;
+                            processChar = true;
+                            break;
                         }
                         char fgChar = curText[x + 2];
                         char bgChar = curText[x + 3];
@@ -676,17 +680,20 @@ public class u3d_text_3ngine : MonoBehaviour
                         // If the color code specified isn't valid, just treat this as plain text
                         if (fgChar != '*' && HackmudColors.ContainsKey(fgChar) == false)
                         {
-                            goto default;
+                            processChar = true;
+                            break;
                         }
                         if (bgChar != '*' && HackmudColors.ContainsKey(bgChar) == false)
                         {
-                            goto default;
+                            processChar = true;
+                            break;
                         }
 
                         if (pass > 0 && mismatch > 0)
                         {
                             mismatch--;
-                            goto default;
+                            processChar = true;
+                            break;
                         }
 
                         // We have a valid color code and we parsed it, so jump forward to the next non-consumed character
@@ -713,7 +720,8 @@ public class u3d_text_3ngine : MonoBehaviour
                         // If this is escaped or if we don't have any active tags, treat as plain text
                         if (escaped || depth == 0)
                         {
-                            goto default;
+                            processChar = true;
+                            break;
                         }
 
                         // Color tag ended, decrement depth, increment tagCloses, and pop the most recent bg/fg colors
@@ -737,24 +745,27 @@ public class u3d_text_3ngine : MonoBehaviour
                         }
                         else
                         {
-                            goto default;
-                        }
-                    default:
-                        // First pass needs to skip the write logic
-                        if(pass == 0)
-                        {
+                            processChar = true;
                             break;
                         }
-                        // If we hit default condition, we are no longer escaped, so just set to false every time
-                        escaped = false;
-                        sb.Append(c);
-                        if (sb.Length < maxWidth)
-                        {
-                            // Because some characters don't get displayed, make sure we associate the color arrays with the actual string length
-                            fgColors[sb.Length - 1] = fgColorStack.Peek();
-                            bgColors[sb.Length - 1] = bgColorStack.Peek();
-                        }
+                    default:
+                        processChar = true;
                         break;
+                }
+
+                // First pass needs to skip the write logic
+                if (processChar && pass > 0)
+                {
+                    // If processChar is true, we are no longer escaped, so just set to false every time
+                    escaped = false;
+                    sb.Append(c);
+                    if (sb.Length < maxWidth)
+                    {
+                        // Because some characters don't get displayed,
+                        // make sure we associate the color arrays with the actual string length
+                        fgColors[sb.Length - 1] = fgColorStack.Peek();
+                        bgColors[sb.Length - 1] = bgColorStack.Peek();
+                    }
                 }
             }
         }
