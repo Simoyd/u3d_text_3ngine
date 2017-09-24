@@ -153,21 +153,24 @@ public class scroll_test : MonoBehaviour
                 char fgColor2 = u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key;
                 char bgColor2 = u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key;
 
-                newLine = string.Format("<c{0}{1}this is a <c{2}{3}broken nested color string>", fgColor, bgColor, fgColor2, bgColor2);
+                newLine = string.Format("<c{0}{1}this is a <c{2}{3}broken nested color string>", fgColor, bgColor,
+                                                                                                 fgColor2, bgColor2);
             }
             else if (rand < 0.95)
             {
                 char fgColor2 = u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key;
                 char bgColor2 = u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key;
 
-                newLine = string.Format("<c{0}{1}this is a <c{2}{3}doubly <c{4}{5}broken nested color string>", fgColor, bgColor, fgColor2, bgColor2, fgColor, fgColor2);
+                newLine = string.Format("<c{0}{1}this is a <c{2}{3}doubly <c{4}{5}broken nested color string>",
+                                        fgColor, bgColor, fgColor2, bgColor2, fgColor, fgColor2);
             }
             else
             {
                 char fgColor2 = u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key;
                 char bgColor2 = u3d_text_3ngine.HackmudColors.ElementAt(r.Next(u3d_text_3ngine.HackmudColors.Count)).Key;
 
-                newLine = string.Format("<c{0}{1}this is a <c{2}{3}nested> colored string>", fgColor, bgColor, fgColor2, bgColor2);
+                newLine = string.Format("<c{0}{1}this is a <c{2}{3}nested> colored string>", fgColor, bgColor,
+                                                                                             fgColor2, bgColor2);
             }
             
 
