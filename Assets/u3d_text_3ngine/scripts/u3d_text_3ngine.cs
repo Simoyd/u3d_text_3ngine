@@ -120,6 +120,11 @@ public class u3d_text_3ngine : MonoBehaviour
         // Ensure to calibrate on first iteration
         RecalibrateSize = true;
 
+        // Initialize the background graphic
+        GameObject background = new GameObject("background");
+        background.transform.parent = transform;
+        backgroundGraphic = background.AddComponent<bg_graphic>();
+
         // Create the template TMP object
         template = new GameObject("tmp_template");
         template.transform.parent = transform;
@@ -147,6 +152,11 @@ public class u3d_text_3ngine : MonoBehaviour
     #endregion
 
     #region Private Members
+
+    /// <summary>
+    /// The graphic used to draw background colors.
+    /// </summary>
+    private bg_graphic backgroundGraphic;
 
     /// <summary>
     /// The Template TMP object to copy and create our lines with
@@ -344,6 +354,13 @@ public class u3d_text_3ngine : MonoBehaviour
 
             return;
         }
+
+        // Re-calibrate the background
+        backgroundGraphic.charWidth = charWidth;
+        backgroundGraphic.charHeight = charHeight;
+        backgroundGraphic.WidthChars = newWidthChars;
+        backgroundGraphic.HeightChars = newHeightChars;
+        backgroundGraphic.Recalibrate();
 
         // HeightChars will only be 0 on first calibration
         if (HeightChars > 0)
