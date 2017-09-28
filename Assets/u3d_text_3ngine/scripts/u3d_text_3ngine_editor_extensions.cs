@@ -67,13 +67,14 @@ public class u3d_text_3ngine_editor_extensions : MonoBehaviour
         while (parentRect == null)
         {
             parentRect = transform.gameObject.GetComponent<RectTransform>();
+            transform = transform.parent;
         }
 
         // Size the rect to 80% of the parent so we can see it
         rect.anchorMin = new Vector2(0, 0);
         rect.anchorMax = new Vector2(1, 1);
         rect.offsetMin = new Vector2(parentRect.rect.width * 0.2f, parentRect.rect.height * 0.2f);
-        rect.offsetMax = new Vector2(0, 0); // opposite top
+        rect.offsetMax = new Vector2(0, 0);
 
         // Ensure it gets reparented if this was a context click (otherwise does nothing)
         GameObjectUtility.SetParentAndAlign(engine, menuCommand.context as GameObject);
